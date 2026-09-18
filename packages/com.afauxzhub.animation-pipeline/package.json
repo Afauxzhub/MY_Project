@@ -1,0 +1,10 @@
+{
+  "name": "com.afauxzhub.animation-pipeline",
+  "version": "0.1.0",
+  "displayName": "Afauxzhub Animation Pipeline",
+  "description": "Reusable 3ds Max to Unity animation import, clip export, curve optimization, and Project-window bridge tools.",
+  "unity": "2021.3",
+  "author": {
+    "name": "Afauxzhub"
+  }
+}

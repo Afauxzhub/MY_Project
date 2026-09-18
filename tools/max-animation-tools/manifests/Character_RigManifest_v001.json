@@ -1,0 +1,64 @@
+{
+  "schema": "referenceRigManifest.v1",
+  "character": "Character",
+  "rigVersion": "v001",
+  "maxVersion": "2020",
+  "rigFile": "../rig/Character_Rig_v001.max",
+  "modelFile": "../model/Character_Model_v001.max",
+  "compatibility": {
+    "minReadableVersion": "v001",
+    "bipCorePolicy": "preserve_anim_no_replace",
+    "constraintPolicy": "reconnect_targets_preserve_keys"
+  },
+  "nodes": [
+    {
+      "guid": "BIP-ROOT",
+      "name": "Bip001",
+      "role": "bip_core",
+      "stable": true,
+      "parentGuid": "",
+      "replacePolicy": "preserve_anim"
+    },
+    {
+      "guid": "BIP-R-HAND",
+      "name": "Bip001 R Hand",
+      "role": "bip_core",
+      "stable": true,
+      "parentGuid": "BIP-ROOT",
+      "replacePolicy": "preserve_anim"
+    },
+    {
+      "guid": "BIP-L-HAND",
+      "name": "Bip001 L Hand",
+      "role": "bip_core",
+      "stable": true,
+      "parentGuid": "BIP-ROOT",
+      "replacePolicy": "preserve_anim"
+    },
+    {
+      "guid": "HP-R-WEAPON-MAIN-0001",
+      "name": "HP_R_Weapon_Main",
+      "role": "weapon_socket",
+      "stable": true,
+      "parentGuid": "BIP-R-HAND",
+      "replacePolicy": "reconnect_constraint"
+    },
+    {
+      "guid": "HP-L-WEAPON-MAIN-0001",
+      "name": "HP_L_Weapon_Main",
+      "role": "weapon_socket",
+      "stable": true,
+      "parentGuid": "BIP-L-HAND",
+      "replacePolicy": "reconnect_constraint"
+    },
+    {
+      "guid": "HP-BACK-WEAPON-0001",
+      "name": "HP_Back_Weapon",
+      "role": "weapon_socket",
+      "stable": true,
+      "parentGuid": "BIP-ROOT",
+      "replacePolicy": "reconnect_constraint"
+    }
+  ],
+  "migrations": []
+}

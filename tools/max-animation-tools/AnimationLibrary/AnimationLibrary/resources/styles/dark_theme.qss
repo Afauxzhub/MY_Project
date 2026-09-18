@@ -1,0 +1,253 @@
+/*
+ * 3ds Max 动画动作库 - 深色主题样式表
+ * 模拟 3ds Max 原生深色界面风格
+ */
+
+/* 主窗口 */
+QMainWindow {
+    background-color: #2b2b2b;
+    color: #cccccc;
+}
+
+/* 通用部件 */
+QWidget {
+    background-color: #2b2b2b;
+    color: #cccccc;
+    font-family: "Microsoft YaHei", Arial, sans-serif;
+    font-size: 9pt;
+}
+
+/* 文件夹树视图 */
+QTreeView {
+    background-color: #3c3c3c;
+    color: #cccccc;
+    border: 1px solid #555555;
+    selection-background-color: #094771;
+    selection-color: #ffffff;
+    outline: none;
+}
+
+QTreeView::item {
+    padding: 4px;
+}
+
+QTreeView::item:hover {
+    background-color: #4c4c4c;
+}
+
+QTreeView::item:selected {
+    background-color: #094771;
+}
+
+QTreeView::branch {
+    background-color: #3c3c3c;
+}
+
+QTreeView::branch:has-children:!has-siblings:closed,
+QTreeView::branch:closed:has-children:has-siblings {
+    image: url(none);
+    border-image: none;
+}
+
+QTreeView::branch:open:has-children:!has-siblings,
+QTreeView::branch:open:has-children:has-siblings {
+    image: url(none);
+    border-image: none;
+}
+
+/* 动画网格列表 */
+QListWidget {
+    background-color: #3c3c3c;
+    color: #cccccc;
+    border: 1px solid #555555;
+    selection-background-color: #094771;
+    selection-color: #ffffff;
+    outline: none;
+}
+
+QListWidget::item {
+    padding: 8px;
+    border-radius: 4px;
+}
+
+QListWidget::item:hover {
+    background-color: #4c4c4c;
+}
+
+QListWidget::item:selected {
+    background-color: #094771;
+}
+
+/* 分组框 */
+QGroupBox {
+    color: #cccccc;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    margin-top: 12px;
+    padding-top: 12px;
+    font-weight: bold;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 10px;
+    padding: 0 5px 0 5px;
+    background-color: #2b2b2b;
+}
+
+/* 按钮 */
+QPushButton {
+    background-color: #3c3c3c;
+    color: #cccccc;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: bold;
+    min-height: 28px;
+}
+
+QPushButton:hover {
+    background-color: #4c4c4c;
+    border: 1px solid #666666;
+}
+
+QPushButton:pressed {
+    background-color: #2c2c2c;
+    border: 1px solid #444444;
+}
+
+QPushButton:disabled {
+    background-color: #2c2c2c;
+    color: #666666;
+    border: 1px solid #444444;
+}
+
+/* 数字输入框 */
+QSpinBox {
+    background-color: #3c3c3c;
+    color: #cccccc;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    padding: 4px 8px;
+    min-height: 24px;
+}
+
+QSpinBox:hover {
+    border: 1px solid #666666;
+}
+
+QSpinBox:focus {
+    border: 1px solid #094771;
+}
+
+QSpinBox::up-button, QSpinBox::down-button {
+    background-color: #555555;
+    border: none;
+    width: 16px;
+}
+
+QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+    background-color: #666666;
+}
+
+QSpinBox::up-arrow {
+    image: url(none);
+    width: 7px;
+    height: 7px;
+}
+
+QSpinBox::down-arrow {
+    image: url(none);
+    width: 7px;
+    height: 7px;
+}
+
+/* 标签 */
+QLabel {
+    color: #cccccc;
+    background-color: transparent;
+}
+
+/* 滚动区域 */
+QScrollArea {
+    background-color: #2b2b2b;
+    border: none;
+}
+
+/* 滚动条 - 垂直 */
+QScrollBar:vertical {
+    background-color: #3c3c3c;
+    width: 12px;
+    border: none;
+    margin: 0px;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #555555;
+    border-radius: 6px;
+    min-height: 20px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #666666;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+/* 滚动条 - 水平 */
+QScrollBar:horizontal {
+    background-color: #3c3c3c;
+    height: 12px;
+    border: none;
+    margin: 0px;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #555555;
+    border-radius: 6px;
+    min-width: 20px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background-color: #666666;
+}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    width: 0px;
+}
+
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+    background: none;
+}
+
+/* 分割器 */
+QSplitter::handle {
+    background-color: #555555;
+}
+
+QSplitter::handle:horizontal {
+    width: 2px;
+}
+
+QSplitter::handle:vertical {
+    height: 2px;
+}
+
+QSplitter::handle:hover {
+    background-color: #666666;
+}
+
+/* 工具提示 */
+QToolTip {
+    background-color: #3c3c3c;
+    color: #cccccc;
+    border: 1px solid #555555;
+    padding: 4px;
+}

@@ -1,0 +1,14 @@
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.log
+**/*.tmp
+**/*.bak
+**/reports/
+**/backups/
+_task_temp/
+RootMotionTool/config/rm_config.json
+AnimFileManager/config/afm_config.json
+AnimFileManager/afm_user_config.json
+AnimationLibrary/AnimationLibrary/config.json
+AnimationTools_DevMachine.flag

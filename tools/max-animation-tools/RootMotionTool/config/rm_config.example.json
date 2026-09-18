@@ -1,0 +1,19 @@
+{
+  "unity_root": "D:/MyUnityProject/Assets",
+  "nas_base": "",
+  "error_report_root": "",
+  "character_rig_root": "",
+  "auto_copy_unity": true,
+  "auto_backup_nas": false,
+  "auto_focus_unity": true,
+  "open_folder_after_export": true,
+  "publisher_name": "",
+  "category_folder_map": {
+    "Role": "Role",
+    "Monster": "Monster",
+    "Elite": "Elite",
+    "Boss": "Boss",
+    "Npc": "Npc",
+    "Scene": "Scene"
+  }
+}

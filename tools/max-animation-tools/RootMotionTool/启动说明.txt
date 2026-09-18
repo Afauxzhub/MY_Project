@@ -1,0 +1,66 @@
+===== Animation 动作工具（引用 + Root Motion + 武器约束）— 启动说明 =====
+
+【推荐安装方式：一键安装 + 工具栏按钮】
+1. 将工作区根目录下的 `install_animation_tools.ms` 直接拖入 3ds Max。
+2. 安装脚本会自动：
+   - 把 `RootMotionTool` 复制到当前 Max 用户目录下的 `plugins/RootMotionTool`
+   - 在当前 Max 用户目录下的 `usermacros` 注册一个宏按钮
+3. 安装完成后，打开：
+   `Customize -> Customize User Interface`
+4. 在分类 `Animation Tools` 下找到：
+   `Root Motion 导出工具`
+5. 把这个按钮拖到工具栏即可使用。
+
+工具顶部页签顺序：
+  1. 引用：创建引用动画文件、检查 Rig 发布版本、刷新引用
+  2. FBX 发布：原 Root Motion 导出流程
+  3. 武器约束绑定：武器状态 CA 和导出前处理
+
+------------------------------------------------
+
+【开发/临时启动方式】
+直接把 `RootMotionTool\launch_rm_tool.ms` 拖进 3ds Max。
+这个脚本会自动按它自己的所在目录启动工具，不再依赖固定机器路径。
+
+------------------------------------------------
+
+【手动启动（MAXScript Listener）】
+方法1：直接执行 .ms 文件（路径改为本机实际路径）
+  fileIn @"<你的工具目录>\RootMotionTool\launch_rm_tool.ms"
+
+方法2：分两步手动执行（路径改为本机实际路径）
+  第一步（每次 Max 启动后执行一次）：
+    python.Execute "import sys; sys.path.insert(0, r'<你的工具目录>\\RootMotionTool')"
+
+  第二步（每次打开工具时执行）：
+    python.Execute "import rm_tool; rm_tool.show()"
+
+------------------------------------------------
+
+【注意事项】
+× 不要用 python.ExecuteFile 启动（Python 2 编码声明冲突，会报 SyntaxError）
+× 不要用 python.Execute 直接执行 rm_tool.py 的文件内容
+✓ 必须用 python.Execute "import rm_tool; rm_tool.show()" 的 import 方式
+
+------------------------------------------------
+
+【关闭工具】
+python.Execute "import rm_tool; rm_tool.close()"
+
+------------------------------------------------
+
+【常见错误】
+Q: SyntaxError: encoding declaration in Unicode string
+A: 使用了 python.ExecuteFile，请改用上面的 import 方式。
+
+Q: ImportError: No module named ui.rm_main_window
+A: sys.path 没有工具目录，先执行上面的手动启动第一步。
+
+Q: 安装后在 Customize UI 里找不到按钮
+A: 确认安装脚本执行成功，然后重开一次 Customize UI；分类名是 `Animation Tools`。
+
+Q: ImportError: No module named MaxPlus
+A: 正常，工具会自动降级，不影响使用。
+
+Q: 执行 import rm_tool 后再次 show() 没有反应
+A: 先执行 python.Execute "import rm_tool; reload(rm_tool); rm_tool.show()"

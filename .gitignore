@@ -45,3 +45,5 @@ crashlytics-build.properties
 *.app
 *.unitypackage
 
+# Local validation scratch projects
+/.validation-temp/
