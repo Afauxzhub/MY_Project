@@ -1,0 +1,19 @@
+{
+  "name": "Afauxzhub.TimelineAbilities.Editor",
+  "rootNamespace": "Afauxzhub.TimelineAbilities.Editor",
+  "references": [
+    "Afauxzhub.TimelineAbilities",
+    "Unity.Timeline"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

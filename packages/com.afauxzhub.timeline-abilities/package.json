@@ -1,0 +1,13 @@
+{
+  "name": "com.afauxzhub.timeline-abilities",
+  "version": "0.1.0",
+  "displayName": "Afauxzhub Timeline Abilities",
+  "description": "Timeline-authored ability commands compiled to a lightweight runtime sequence.",
+  "unity": "2022.3",
+  "dependencies": {
+    "com.unity.timeline": "1.7.7"
+  },
+  "author": {
+    "name": "Afauxzhub"
+  }
+}

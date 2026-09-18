@@ -23,3 +23,16 @@ For work involving the personal 3ds Max animation tools, Unity animation export 
 6. Preserve compatibility with 3ds Max 2020, Python 2.7, PySide2, and MaxScript unless an explicit migration is approved.
 
 Static validation is not a substitute for a real 3ds Max and Unity acceptance pass. State the runtime verification boundary explicitly.
+
+## Reusable Unity gameplay packages
+
+For third-person locomotion or Timeline-authored abilities:
+
+1. Read `docs/architecture/company-reference-reuse-review.md` first.
+2. Use `packages/com.afauxzhub.character-locomotion` as the source of truth for camera-relative movement intent and heading math.
+3. Use `packages/com.afauxzhub.timeline-abilities` as the source of truth for Timeline authoring, compilation, and runtime instruction scheduling.
+4. Keep input, camera, collision motor, animation playback, and combat policy behind project adapters. Do not add company project types or paths to either reusable package.
+5. Timeline ability code must continue to follow `docs/design/combat/player-combat-spec.md` and `docs/design/combat/integration-contracts.md`. Timeline schedules accepted actions; it does not own resource payment, hit-stun permission, cancellation priority, or skill-link state.
+6. Keep animation timing and gameplay windows independently tunable. Treat all greybox values as data, not permanent constants.
+
+Static package checks do not prove Unity import, Timeline authoring, character movement feel, camera behavior, or animation blending. Report those runtime gaps explicitly.

@@ -1,0 +1,10 @@
+{
+  "name": "com.afauxzhub.character-locomotion",
+  "version": "0.1.0",
+  "displayName": "Afauxzhub Character Locomotion",
+  "description": "Camera-relative locomotion intent and curvature-constrained heading solver for third-person characters.",
+  "unity": "2022.3",
+  "author": {
+    "name": "Afauxzhub"
+  }
+}
