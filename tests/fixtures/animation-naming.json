@@ -1,0 +1,14 @@
+{
+  "personal": [
+    { "name": "Player_Unarmed_Run", "character": "Player", "set": "Unarmed", "action": "Run", "folder": "Player/Locomotion" },
+    { "name": "Player_Unarmed_Idle", "character": "Player", "set": "Unarmed", "action": "Idle", "folder": "Player/Locomotion" },
+    { "name": "Player_Sword_Idle", "character": "Player", "set": "Sword", "action": "Idle", "folder": "Player/Locomotion" },
+    { "name": "Player_Spear_Idle", "character": "Player", "set": "Spear", "action": "Idle", "folder": "Player/Locomotion" },
+    { "name": "Wolf_Run", "character": "Wolf", "set": "", "action": "Run", "folder": "Wolf/Locomotion" },
+    { "name": "Merchant_Talk01", "character": "Merchant", "set": "", "action": "Talk01", "folder": "Merchant/Interactions" },
+    { "name": "Player_Sword_Attack01", "character": "Player", "set": "Sword", "action": "Attack01", "folder": "Player/Attacks" }
+  ],
+  "invalid": ["Player", "Player__Idle", "player_Unarmed_Run", "Player_Unarmed_Run_Final", "Player_Unarmed_Run/Bad", "Player_Unarmed_Run..", "Player_Unarmed_Run\n", "../Player_Run", "Player_空手_Run"],
+  "legacy": ["Role_Player_Run", "Role_Player_Run_Start", "Boss_Golem_Dead"],
+  "cinematic": ["UL_Role_Player_Cam01", "DI_Chap01_SC01"]
+}

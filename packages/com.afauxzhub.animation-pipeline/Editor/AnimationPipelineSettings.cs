@@ -11,6 +11,7 @@ namespace Afauxzhub.AnimationPipeline.Editor
         [SerializeField] private string outputRoot = "Assets/Generated/AnimationClips";
         [SerializeField] private bool autoExportOnImport;
         [SerializeField] private bool groupByFirstTwoNameSegments = true;
+        [SerializeField] private bool mirrorPersonalAnimationFolders;
         [SerializeField] private bool optimizeCurves = true;
         [SerializeField] private ModelImporterAnimationCompression animationCompression = ModelImporterAnimationCompression.Optimal;
         [SerializeField] private string rootNode = string.Empty;
@@ -22,6 +23,7 @@ namespace Afauxzhub.AnimationPipeline.Editor
         public string OutputRoot => NormalizeAssetPath(outputRoot);
         public bool AutoExportOnImport => autoExportOnImport;
         public bool GroupByFirstTwoNameSegments => groupByFirstTwoNameSegments;
+        public bool MirrorPersonalAnimationFolders => mirrorPersonalAnimationFolders;
         public bool OptimizeCurves => optimizeCurves;
         public ModelImporterAnimationCompression AnimationCompression => animationCompression;
         public string RootNode => rootNode ?? string.Empty;
@@ -92,6 +94,7 @@ namespace Afauxzhub.AnimationPipeline.Editor
             Draw("outputRoot", ".anim 输出目录");
             Draw("autoExportOnImport", "导入 FBX 时自动导出");
             Draw("groupByFirstTwoNameSegments", "按文件名前两段分组");
+            Draw("mirrorPersonalAnimationFolders", "个人短命名镜像 FBX 子目录（优先）");
             Draw("optimizeCurves", "导出后优化曲线");
             Draw("animationCompression", "FBX 动画压缩");
             Draw("rootNode", "Root 节点");

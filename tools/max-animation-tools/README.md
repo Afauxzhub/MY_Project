@@ -31,6 +31,12 @@
 
 ## Unity 联动
 
+新建局内文件默认使用“个人短命名”：`Player_Unarmed_Run`、`Player_Sword_Idle` 或 `Wolf_Run`。动作集独立且可留空；目录分类不进入名称。绑定可直接选择个人 `.max`，不强制旧的 LOD 命名。工作机 Unity 路径选择个人工程 `Client/Assets` 后，自动推导同仓 `ArtSource/Characters`；也可以手动选择源文件保存位置。
+
+短命名发布到 `Art/Animations/<角色>/<用途分类>`；用途只从源路径 `Animations/Locomotion` 等明确分类读取，否则使用 `Common`。配套 Unity 工程须开启“个人短命名镜像 FBX 子目录”，定位与生成 `.anim` 使用相同相对目录。个人发布采用单动作 FBX，不开启分段 / 相机导出，也不走旧公盘阶段流程。旧分类格式、局外格式及其发布路径继续兼容。
+
+目录和命名权威规范见仓库 `docs/production/asset-workflow.md`；纯函数测试为 `validation/validate_personal_naming.py`，与 Unity 共用 `tests/fixtures/animation-naming.json`。
+
 配套 Unity Package 位于仓库的：
 
 `packages/com.afauxzhub.animation-pipeline`

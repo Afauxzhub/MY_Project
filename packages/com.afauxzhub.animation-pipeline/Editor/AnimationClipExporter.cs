@@ -91,6 +91,12 @@ namespace Afauxzhub.AnimationPipeline.Editor
 
         private static string BuildOutputFolder(string fbxPath, AnimationPipelineSettings settings)
         {
+            if (settings.MirrorPersonalAnimationFolders && PersonalAnimationNaming.TryParse(
+                Path.GetFileNameWithoutExtension(fbxPath), out _, out _, out _))
+            {
+                string outputPath = PersonalAnimationNaming.GetOutputPath(settings.SourceRoot, settings.OutputRoot, fbxPath);
+                return Path.GetDirectoryName(outputPath).Replace('\\', '/');
+            }
             string root = settings.OutputRoot;
             if (!settings.GroupByFirstTwoNameSegments)
                 return root;

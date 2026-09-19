@@ -3346,6 +3346,8 @@ class MainWindow(QtWidgets.QDialog):
         nas_base     = self._config.get(u"nas_base",   u"")
         auto_unity   = self._config.get(u"auto_copy_unity",   True)
         auto_nas     = self._config.get(u"auto_backup_nas",   True)
+        if (parsed_info or {}).get(u"naming_scheme") == u"personal":
+            auto_nas = False  # Personal assets use the repository, not legacy public stage folders.
         auto_focus   = self._config.get(u"auto_focus_unity",  True)
         open_folder  = self._config.get(u"open_folder_after_export", True)
         backup_stage = self._config.get(u"backup_stage", u"初版")
@@ -3372,10 +3374,14 @@ class MainWindow(QtWidgets.QDialog):
         # A 路：FBX → Unity
         if unity_root and parsed_info:
             if anim_type == u"indoor":
-                unity_dir = get_unity_indoor_path(
-                    unity_root, cat_map,
-                    parsed_info[u"category"], parsed_info[u"char_name"]
-                )
+                if parsed_info.get(u"naming_scheme") == u"personal":
+                    from pipeline.personal_naming import unity_destination
+                    unity_dir = unity_destination(unity_root, parsed_info, max_file_path)
+                else:
+                    unity_dir = get_unity_indoor_path(
+                        unity_root, cat_map,
+                        parsed_info[u"category"], parsed_info[u"char_name"]
+                    )
                 open_dir = get_unity_indoor_clip_open_path(
                     unity_root,
                     parsed_info[u"category"],
@@ -3403,7 +3409,13 @@ class MainWindow(QtWidgets.QDialog):
         _publog(u"unity_dir={0}".format(unity_dir or u"<empty>"))
         _publog(u"open_dir={0}".format(open_dir or u"<empty>"))
         if open_dir and fbx_paths:
-            open_asset_path = get_unity_clip_asset_path(open_dir, fbx_paths[0])
+            if parsed_info.get(u"naming_scheme") == u"personal" and unity_dir:
+                imported_path = os.path.join(unity_dir, os.path.basename(fbx_paths[0]))
+                open_asset_path = get_unity_clip_asset_path(
+                    open_dir, imported_path, os.path.join(unity_root, u"Art", u"Animations")
+                )
+            else:
+                open_asset_path = get_unity_clip_asset_path(open_dir, fbx_paths[0])
         _publog(u"open_asset_path={0}".format(open_asset_path or u"<empty>"))
         if unity_dir:
             _publog(u"unity_dir exists={0}".format(os.path.exists(unity_dir)))
@@ -3547,6 +3559,9 @@ class MainWindow(QtWidgets.QDialog):
 
     def _confirm_publish_version(self, anim_type, parsed_info=None, match_key=None):
         """按角色全部公盘动作确认本次阶段；match_key 仅保留调用兼容。"""
+        if (parsed_info or {}).get(u"naming_scheme") == u"personal":
+            # Personal source files are versioned in Git, not public stage directories.
+            return True
         from pipeline.publish_public_lookup import (
             build_indoor_char_root,
             build_outdoor_char_root,
@@ -3675,6 +3690,10 @@ class MainWindow(QtWidgets.QDialog):
             # 命名校验
             raw_name   = os.path.splitext(max_file_name)[0]
             clean_name = clean_string_native(raw_name, u"")
+            from pipeline.rm_naming import indoor_categories_from_map
+            if raw_name.split(u"_")[0] not in indoor_categories_from_map(self._config.get(u"category_folder_map")):
+                # New personal names must not silently lose a suffix / field in legacy cleanup.
+                clean_name = raw_name
             final_name, ok = self._validate_and_rename(clean_name, u"indoor")
             if not ok:
                 return []
@@ -3682,6 +3701,17 @@ class MainWindow(QtWidgets.QDialog):
             is_valid, _, parsed_info = validate_indoor_name(
                 final_name, self._config.get(u"category_folder_map")
             )
+
+            if parsed_info.get(u"naming_scheme") == u"personal" and (
+                (self._enable_split_chk.isChecked() and self._split_data)
+                or self._indoor_export_cam_chk.isChecked() or self._indoor_only_cam_chk.isChecked()
+            ):
+                QtWidgets.QMessageBox.warning(
+                    self, u"个人动画发布范围",
+                    u"个人短命名当前采用一个动作一个 FBX。请关闭分段与相机导出；"
+                    u"分段动作请分别保存为独立动作名（例如 RunStart、RunStop）。旧格式的分段 / 相机流程不变。"
+                )
+                return []
 
             if not is_batch:
                 if not self._confirm_publish_version(

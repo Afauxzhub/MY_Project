@@ -39,6 +39,9 @@ from pipeline.rm_naming import (
 )
 from ui.rm_config_io import load_config as load_publish_config
 from ui.rm_theme import apply_dark_theme
+from pipeline.personal_naming import (
+    PURPOSES, compose_name, parse_name, source_characters_root, source_destination,
+)
 
 try:
     _text_type = unicode
@@ -131,15 +134,29 @@ class NewFileDialog(QtWidgets.QDialog):
         choice_layout.setVerticalSpacing(14)
         choice_layout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
 
+        self._naming_mode = QtWidgets.QComboBox()
+        self._naming_mode.addItems([u"个人短命名", u"旧分类格式（兼容）"])
+        self._naming_mode.currentIndexChanged.connect(self._on_naming_mode_changed)
+        choice_layout.addRow(u"命名规则：", self._naming_mode)
+
         self._category_combo = QtWidgets.QComboBox()
         self._category_combo.currentIndexChanged.connect(self._on_fields_changed)
         choice_layout.addRow(u"角色分类：", self._category_combo)
 
         self._character_edit = QtWidgets.QLineEdit()
-        self._character_edit.setPlaceholderText(u"例如 Hero")
+        self._character_edit.setPlaceholderText(u"例如 Player、Wolf、Merchant")
         self._character_edit.textChanged.connect(self._on_character_changed)
         self._character_edit.editingFinished.connect(self._normalize_character)
         choice_layout.addRow(u"角色名称：", self._character_edit)
+
+        self._action_set_edit = QtWidgets.QLineEdit(u"Unarmed")
+        self._action_set_edit.setPlaceholderText(u"可空；例如 Unarmed、Sword、Spear")
+        self._action_set_edit.textChanged.connect(self._on_fields_changed)
+        choice_layout.addRow(u"动作集：", self._action_set_edit)
+        self._purpose_combo = QtWidgets.QComboBox()
+        self._purpose_combo.addItems(list(PURPOSES))
+        self._purpose_combo.currentIndexChanged.connect(self._on_fields_changed)
+        choice_layout.addRow(u"目录分类：", self._purpose_combo)
 
         rig_row = QtWidgets.QHBoxLayout()
         self._rig_combo = QtWidgets.QComboBox()
@@ -148,12 +165,15 @@ class NewFileDialog(QtWidgets.QDialog):
         refresh_btn = QtWidgets.QPushButton(u"刷新")
         refresh_btn.setFixedWidth(68)
         refresh_btn.clicked.connect(self._refresh_rigs)
+        choose_rig_btn = QtWidgets.QPushButton(u"选择…")
+        choose_rig_btn.clicked.connect(self._choose_personal_rig)
         rig_row.addWidget(self._rig_combo, 1)
         rig_row.addWidget(refresh_btn)
+        rig_row.addWidget(choose_rig_btn)
         choice_layout.addRow(u"绑定文件：", rig_row)
 
         self._action_edit = QtWidgets.QLineEdit()
-        self._action_edit.setPlaceholderText(u"例如 Skill01")
+        self._action_edit.setPlaceholderText(u"例如 Idle、Run、Attack01")
         self._action_edit.textChanged.connect(self._on_fields_changed)
         self._action_edit.editingFinished.connect(self._normalize_action)
         choice_layout.addRow(u"动作名称：", self._action_edit)
@@ -189,7 +209,7 @@ class NewFileDialog(QtWidgets.QDialog):
 
         path_row = QtWidgets.QHBoxLayout()
         self._path_edit = QtWidgets.QLineEdit()
-        self._path_edit.setPlaceholderText(u"请先在打开文件工具中设置本地路径")
+        self._path_edit.setPlaceholderText(u"由 Unity Assets 路径推导，或手动选择源文件保存位置")
         browse_btn = QtWidgets.QPushButton(u"浏览…")
         browse_btn.setFixedWidth(76)
         browse_btn.clicked.connect(self._browse_destination)
@@ -223,6 +243,8 @@ class NewFileDialog(QtWidgets.QDialog):
 
         layout.addWidget(choice_group, 5)
         layout.addWidget(preview_group, 6)
+        self._personal_choice_layout = choice_layout
+        self._on_naming_mode_changed()
         self._on_stage_changed()
         return page
 
@@ -563,9 +585,12 @@ class NewFileDialog(QtWidgets.QDialog):
         author = _as_text(self._publish_config.get(u"publisher_name", u"")).strip()
         self._author_edit.setText(author or u"未设置")
         messages = []
-        if not self._local_root:
+        if self._is_personal():
+            if not source_characters_root(self._publish_config.get(u"unity_root", u"")):
+                messages.append(u"在发布设置中选择个人工程 Client/Assets；也可手动指定源文件保存位置。")
+        elif not self._local_root:
             messages.append(u"请先在“打开文件”工具中设置本地路径。")
-        if not author:
+        if not self._is_personal() and not author:
             messages.append(u"请先在发布工具设置中填写发布负责人。")
         self._settings_status.setText(u"\n".join(messages))
         self._update_preview(force_path=force_path)
@@ -710,6 +735,35 @@ class NewFileDialog(QtWidgets.QDialog):
         if self.sender() is self._category_combo and self._character_edit.text().strip():
             self._refresh_rigs()
 
+    def _is_personal(self):
+        return self._naming_mode.currentIndex() == 0
+
+    def _on_naming_mode_changed(self, *args):
+        if not hasattr(self, "_personal_choice_layout"):
+            return
+        personal = self._is_personal()
+        for widget in (self._category_combo, self._stage_combo, self._version_combo):
+            widget.setVisible(not personal)
+            label = self._personal_choice_layout.labelForField(widget)
+            if label is not None:
+                label.setVisible(not personal)
+        for widget in (self._action_set_edit, self._purpose_combo):
+            widget.setVisible(personal)
+            self._personal_choice_layout.labelForField(widget).setVisible(personal)
+        self._filename_edit.clear()
+        self._update_preview(force_path=True)
+        self._refresh_rigs()
+
+    def _choose_personal_rig(self):
+        path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, u"选择个人绑定源文件", u"", u"3ds Max (*.max)"
+        )
+        if path:
+            self._manual_rig_character = normalize_name_part(self._character_edit.text())
+            self._rig_combo.addItem(os.path.basename(path), path)
+            self._rig_combo.setCurrentIndex(self._rig_combo.count() - 1)
+            self._rig_status.setText(u"使用手动选择的绑定；不要求旧 LOD 文件命名。")
+
     def _on_stage_changed(self, *args):
         is_review = self._stage_combo.currentText() == u"监修"
         self._version_combo.setEnabled(is_review)
@@ -812,9 +866,14 @@ class NewFileDialog(QtWidgets.QDialog):
                 self._publish_config.get(u"category_folder_map"),
             )
         else:
-            ok, message, _ = validate_indoor_name(
-                stem, self._publish_config.get(u"category_folder_map")
-            )
+            if self._is_personal():
+                ok, message, _ = parse_name(stem)
+            else:
+                ok, message, parsed = validate_indoor_name(
+                    stem, self._publish_config.get(u"category_folder_map")
+                )
+                if ok and parsed.get(u"naming_scheme") == u"personal":
+                    ok, message = False, u"短命名请切换到个人模式。"
         if not ok:
             return False, u"文件名称不符合发布规范：{0}".format(message), u""
         return True, u"", filename
@@ -823,17 +882,34 @@ class NewFileDialog(QtWidgets.QDialog):
         category = _as_text(self._category_combo.currentText()).strip()
         character = normalize_name_part(self._character_edit.text())
         action = normalize_name_part(self._action_edit.text())
-        generated_filename = compose_indoor_filename(category, character, action)
-        if not (category and character and action):
-            generated_filename = u""
+        generated_filename = u""
+        if self._is_personal():
+            try:
+                generated_filename = compose_name(
+                    character, action, normalize_name_part(self._action_set_edit.text())
+                ) + u".max"
+            except ValueError:
+                pass
+        elif category and character and action:
+            generated_filename = compose_indoor_filename(category, character, action)
         filename = self._set_generated_filename(
             self._filename_edit, generated_filename, u"_last_auto_filename"
         )
         stage, version, stage_label = self._stage_state()
-        self._stage_preview.setText(stage_label)
+        self._stage_preview.setText(u"由版本控制管理，不进入名称或目录" if self._is_personal() else stage_label)
 
         auto_path = u""
-        if self._local_root and filename:
+        if self._is_personal() and filename:
+            valid, _, parsed = validate_indoor_name(filename[:-4])
+            if valid and parsed.get(u"naming_scheme") == u"personal":
+                try:
+                    auto_path = source_destination(
+                        self._publish_config.get(u"unity_root", u""), parsed[u"char_name"],
+                        _as_text(self._purpose_combo.currentText()), filename
+                    )
+                except ValueError:
+                    pass
+        elif self._local_root and filename:
             path_category = category
             path_character = character
             if filename.lower().endswith(u".max"):
@@ -857,6 +933,29 @@ class NewFileDialog(QtWidgets.QDialog):
         self._last_auto_path = auto_path
 
     def _refresh_rigs(self):
+        if self._is_personal():
+            character = normalize_name_part(self._character_edit.text())
+            root = source_characters_root(self._publish_config.get(u"unity_root", u""))
+            current = _as_text(self._rig_combo.currentData())
+            self._rig_combo.clear()
+            # Restrict discovery to this character's personal Rig directory.
+            if character and root and validate_name_part(character, u"角色")[0]:
+                rig_dir = os.path.join(root, character, u"Rig")
+                if os.path.isdir(rig_dir):
+                    for folder, _, files in os.walk(rig_dir):
+                        for name in sorted(files):
+                            if name.lower().endswith(u".max"):
+                                path = os.path.join(folder, name)
+                                self._rig_combo.addItem(os.path.relpath(path, rig_dir), path)
+            index = self._rig_combo.findData(current)
+            if (index < 0 and current and os.path.isfile(current)
+                    and getattr(self, "_manual_rig_character", u"") == character):
+                self._rig_combo.addItem(os.path.basename(current), current)
+                index = self._rig_combo.count() - 1
+            if index >= 0:
+                self._rig_combo.setCurrentIndex(index)
+            self._rig_status.setText(u"个人绑定可放在 ArtSource/Characters/<角色>/Rig；也可手动选择。")
+            return
         character = normalize_name_part(self._character_edit.text())
         self._rig_combo.clear()
         self._rig_items = []
@@ -1377,7 +1476,7 @@ class NewFileDialog(QtWidgets.QDialog):
 
     def _validate_create(self):
         category = _as_text(self._category_combo.currentText()).strip()
-        if not category:
+        if not self._is_personal() and not category:
             return False, u"请选择角色分类"
         ok, message, character = validate_name_part(
             self._character_edit.text(), u"角色名称"
@@ -1387,14 +1486,18 @@ class NewFileDialog(QtWidgets.QDialog):
         ok, message, action = validate_name_part(self._action_edit.text(), u"动作名称")
         if not ok:
             return False, message
-        if not self._local_root:
+        if self._is_personal():
+            action_set = normalize_name_part(self._action_set_edit.text())
+            if action_set and not validate_name_part(action_set, u"动作集")[0]:
+                return False, u"动作集只能使用字母数字，以字母开头；也可以留空。"
+        elif not self._local_root:
             return False, u"请先在“打开文件”工具中设置本地路径"
         author = _as_text(self._publish_config.get(u"publisher_name", u"")).strip()
-        if not author:
+        if not self._is_personal() and not author:
             return False, u"请先在发布工具设置中填写发布负责人"
         source = _as_text(self._rig_combo.currentData()).strip()
         if not source:
-            return False, u"请选择有效的 LOD 绑定文件"
+            return False, u"请选择有效的绑定 .max 文件"
         ok, message, filename = self._validate_preview_filename(
             self._filename_edit, outdoor=False
         )

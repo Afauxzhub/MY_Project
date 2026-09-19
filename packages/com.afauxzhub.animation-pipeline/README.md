@@ -29,6 +29,8 @@
 
 当前 `.anim` 按 FBX 文件名前两段分组，例如 `Role_Player_LocomotionRunForward.fbx` 输出到 `Assets/Generated/AnimationClips/Role_Player/Role_Player_LocomotionRunForward.anim`。重新导出会更新已有 Clip、保留其 GUID，同时覆盖 Clip 内的手工修改；项目动作元数据应独立保存。
 
+可选启用“个人短命名镜像 FBX 子目录”（包默认关闭，本项目开启）：`Player_Unarmed_Idle` / `Wolf_Run` 等 `角色_[动作集_]动作` 命名将按来源根的相对子目录输出。例如 `Assets/Art/Animations/Player/Locomotion/Player_Sword_Idle.fbx` → `Assets/Generated/AnimationClips/Player/Locomotion/Player_Sword_Idle.anim`。动作集不等于文件夹或状态机。已有分类和过场前缀保留旧的分组行为。
+
 ## 手动导出
 
 1. 在 Project 窗口选中一个或多个 FBX。

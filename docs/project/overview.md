@@ -2,7 +2,7 @@
 
 | 字段 | 当前状态 |
 | --- | --- |
-| 项目阶段 | 最小第三人称移动闭环已完成；个人资产制作基线已配置，准备首条 Root Motion 动画验收 |
+| 项目阶段 | 最小第三人称移动闭环已完成；个人动画短命名双端适配中，随后验收首条 Root Motion 动画 |
 | 当前里程碑 | M1：玩家战斗最小灰盒（MOVE-001 已完成） |
 | Unity 基线 | Unity 6000.3.24f1（Unity 6.3 LTS） |
 | 任务索引 | [`tasks.md`](tasks.md) |
@@ -56,4 +56,4 @@
 
 ## 下一项工作
 
-用户制作首条带 `Root` 轨迹的 `Player` 空手测试动画，按 ANIM-001 验证 Max → FBX → Unity `.anim` 的发布闭环，再推进动画驱动移动。角色登记见 [`../production/characters/Player.md`](../production/characters/Player.md)。现有 MOVE-001 仅是程序移动灰盒，不代表最终动作表现。
+先完成 ASSET-002 的短命名适配和本机部署；用户可同时制作首条带 `Root` 轨迹的 `Player_Unarmed_Run.max`，按 ANIM-001 验证 Max → FBX → Unity `.anim` 的发布闭环，再推进动画驱动移动。角色登记见 [`../production/characters/Player.md`](../production/characters/Player.md)。现有 MOVE-001 仅是程序移动灰盒，不代表最终动作表现。

@@ -9,8 +9,8 @@
 | 模型、绑定、动画、贴图的制作源文件 | `ArtSource/Characters/<角色代号>/Model`、`Rig`、`Animations`、`Textures` | 制作端；大型二进制 Git LFS |
 | 场景、UI、声音制作源文件 | `ArtSource/Environments`、`UI`、`Audio` | 制作端；大型二进制 Git LFS |
 | 发布的角色模型、材质、运行贴图 | `Client/Assets/Art/Characters/<角色代号>/Models`、`Materials`、`Textures` | 发布文件 + Unity 材质；保留 `.meta` |
-| 发布的动画 FBX | `Client/Assets/Art/Animations/<分类目录>/<分类>_<角色代号>` | Max 发布；Git LFS + `.meta` |
-| 提取的动画 | `Client/Assets/Generated/AnimationClips/<分类>_<角色代号>` | Unity 导出工具；`.anim` + `.meta` 提交 |
+| 发布的动画 FBX | `Client/Assets/Art/Animations/<角色代号>/<用途分类>` | Max 发布；Git LFS + `.meta` |
+| 提取的动画 | `Client/Assets/Generated/AnimationClips/<角色代号>/<用途分类>` | Unity 镜像 FBX 子目录；`.anim` + `.meta` 提交 |
 | 手工 Animator、Mask、Unity 原生动画 | `Client/Assets/Animations` | Unity 手工维护，禁止放到生成目录 |
 | 动作定义、脚步接触元数据、移动/战斗配置 | `Client/Assets/GameData` | 项目数据，独立于生成动画 |
 | 项目脚本 / 编辑器工具 | `Client/Assets/Scripts` / `Editor` | 普通 Git |
@@ -22,36 +22,42 @@ Unity 只打开 `Client/`。日常制作使用主工程的 `ArtSource/` 和 `Cli
 
 目录按需要增补。既有 `Assets/Locomotion` 灰盒配置继续有效，本次不移动已引用资产；新的动作数据放在 `GameData/Locomotion`。
 
-## 2. 命名与 Max 兼容协议
+## 2. 个人短命名与旧格式兼容
 
 正式动作资产使用 ASCII 字母与数字，以 `_` 分字段：
 
 ```text
-<分类>_<角色代号>_<动作ID>
-Role_Player_LocomotionUnarmedRunForward
-Role_Player_LocomotionUnarmedStopPlantL
-Role_Player_LocomotionUnarmedPivot180TurnRPlantL
-Role_Player_LocomotionArmedIdle
+<角色代号>_<动作集>_<动作>
+Player_Unarmed_Run
+Player_Unarmed_Idle
+Player_Sword_Idle
+Wolf_Run
 ```
 
-- `Role` 是现有发布工具的分类；其他分类沿用工具已有白名单。
+- 不再强制 `Role` 前缀；主角、怪物和 NPC 使用稳定角色 / 类型代号，不使用场景实例编号。
 - `Player` 是首个角色的稳定技术代号，用户已确认；不随显示名称改变。
-- 第三段合并用途、持物姿态与动作，例如 `LocomotionUnarmedRunForward`，内部不加下划线，避免被旧解析器误认为制作阶段。
-- `Unarmed` 表示空手 / 武器收纳状态；`Armed` 表示手持武器状态。首轮只做 `Unarmed`，后续两套移动与待机分别命名。武器收纳 / 取出是切换动作，不与空手待机混为一项；具体武器分类后续再补。
+- 动作集与动作是独立字段；没有多套动作的角色可以省略动作集，形成 `Wolf_Run`。只允许 2 或 3 段，每段以大写 ASCII 字母开头，只含字母数字。
+- 首轮动作集为 `Unarmed`，后续按实际武器动作体系命名，不采用笼统 `Armed`；`Sword` / `Spear` 仅为示例，不代表武器设计已确认。多把武器可引用同一动作集；装备实例、动作集与持握状态分开。
+- 收纳后姿态相同可以共用 `Unarmed`；收纳 / 取出是独立切换动作，不与空手待机混为一项。动作集不等于战斗状态。
+- `Locomotion` 等用途留在目录中，不进入动作字段。目录用于整理，状态选择由配置显式引用动画，不能仅靠文件夹推断状态机。不同动作集的待机可以放在同一目录。
 - `TurnL/TurnR` 表示向左/右转，`PlantL/PlantR` 表示进入动作时左/右支撑脚，左右以角色自身为准。
-- 正式输出保持同名；工作版本由 Git 保存，不在发布名称追加日期、`Final`、`V003`。
+- 正式输出保持同名；个人模式的制作阶段 / 工作版本由 Git 保存，不在名称或目录追加 `Final`、`V003`、初版 / 终版。可用 `Idle02` 标记真正不同的动作变体，而不是制作版本。
 - 前期一个动作一个 Max 文件、一个 FBX 一个 Clip；模型 FBX 与动画 FBX 分开。
 - FBX 文件基名在动画来源目录内必须唯一，不能依靠子目录区分同名动作。
 
 实际示例（均从仓库根目录算起）：
 
 ```text
-ArtSource/Characters/Player/Animations/Locomotion/Role_Player_LocomotionUnarmedRunForward.max
-Client/Assets/Art/Animations/Role/Role_Player/Role_Player_LocomotionUnarmedRunForward.fbx
-Client/Assets/Generated/AnimationClips/Role_Player/Role_Player_LocomotionUnarmedRunForward.anim
+ArtSource/Characters/Player/Animations/Locomotion/Player_Unarmed_Run.max
+Client/Assets/Art/Animations/Player/Locomotion/Player_Unarmed_Run.fbx
+Client/Assets/Generated/AnimationClips/Player/Locomotion/Player_Unarmed_Run.anim
 ```
 
-这是核对现有 Max `validate_indoor_name`、`get_unity_indoor_path` 与 Unity `BuildOutputFolder` 后选定的实际协议，替代讨论阶段的 `Player_Locomotion_RunForward` 示例。Unity 按文件名前两段分组，不镜像 FBX 子目录。多 Clip 会追加 Clip 名；要启用这种用法先明确映射及重命名规则。
+用途分类为 `Locomotion`、`Attacks`、`Reactions`、`Interactions`、`Common`。Max 从源文件路径中的 `Animations/<用途分类>` 读取分类，名称中的动作集不参与目录分组；路径未包含这些明确分类时进入 `Common`，不通过 Run/Idle 等词猜测。Unity 对短命名镜像 FBX 相对来源根的子目录，Max 定位到同一路径。
+
+新建面板默认“个人短命名”，动作集可留空，绑定可从个人 `Rig` 目录发现或手动选择任意 `.max`。个人模式首版采用一源文件、一动画 FBX、一 Clip；开启分段或相机导出时会在导出前明确阻止，避免产生未定义名称。分段动作暂时分别制作 `RunStart`、`RunStop` 等源文件，不静默改名。
+
+兼容边界：旧 `Role_Player_Run(_Start)` 等分类格式和局外 / 过场格式保持原路径及解析；旧格式仍按文件名前两段输出，不批量迁移或重命名现有素材。`Role/Monster/Elite/Boss/Npc/Scene` 和已有过场前缀为保留前缀，不作为新角色代号。新格式不做旧公盘阶段确认和自动备份，旧设置不被改写。
 
 ## 3. 资产权威来源
 
@@ -67,7 +73,7 @@ Client/Assets/Generated/AnimationClips/Role_Player/Role_Player_LocomotionUnarmed
 | --- | --- |
 | FBX 来源 | `Assets/Art/Animations` |
 | `.anim` 输出 | `Assets/Generated/AnimationClips` |
-| 分组 | 文件名前两段 |
+| 分组 | 个人短命名镜像 FBX 子目录；旧格式保留文件名前两段分组 |
 | 动画类型 | 沿用现有工具的 Generic |
 | 曲线优化 | 关闭，先保留数据检查基线 |
 | Unity 动画压缩 | Off，先检查原始轨迹 |
@@ -78,13 +84,15 @@ Client/Assets/Generated/AnimationClips/Role_Player/Role_Player_LocomotionUnarmed
 
 `Tools > MY Project > Validate Asset Workflow` 检查目录、共享配置、命名和输出碰撞，不改场景、不重建已有动画。还没有 FBX 时，检查可以通过，但日志会明确提示真实骨架 / 动画仍需单独验收。
 
+`Tools > MY Project > Validate Animation Naming` 使用与 Max 共用的 `tests/fixtures/animation-naming.json`，验证新名称、非法名称、不同动作集同目录、真实导出器路径及旧格式回退；不创建正式动画。
+
 ## 5. Max 工作机设置
 
 可复用源码仍在 `tools/max-animation-tools`，安装版只是运行副本。真实 `rm_config.json` 是机器配置，不提交。
 
 - `unity_root` 选择正在工作的 `Client/Assets`，不是仓库根、也不是仅 `Client`。
 - 自动复制 FBX 可开启；NAS 自动备份保持关闭，使用自己的版本控制和独立备份。
-- 分类目录使用现有 `Role → Role` 等映射，以保持本文输出路径成立。
+- 分类映射 `Role → Role` 等只影响旧格式。个人短命名按角色与用途分类发布，Unity 需启用“个人短命名镜像 FBX 子目录”。
 - Max 2020 / Biped / 独立 `Root` 已确认；Root/Bip/导出骨架选择仍需结合登记表和实际文件在 Max 内核对。工具对部分 Biped/蒙皮结构有专门处理，不能只凭名称承诺实际层级直接兼容。
 - 本机路径不写入通用包、提交的示例或角色登记表。换电脑只需要设置机器位置，不重定命名和目录协议。
 
@@ -112,3 +120,4 @@ Client/Assets/Generated/AnimationClips/Role_Player/Role_Player_LocomotionUnarmed
 | 日期 | 内容 |
 | --- | --- |
 | 2026-09-20 | 采纳源文件/发布 FBX/生成动画分层；核对两端命名协议；建立共享配置和 LFS；确认 Player、Max 2020、Biped、Root、首轮 Unarmed / 后续 Armed，真实导出层级待首条 FBX 核对 |
+| 2026-09-20 | 用户修订：取消新资产的 Role / Locomotion 长命名，动作集独立、后续按武器类型扩展，不采用泛化 Armed；双端短命名适配由 ASSET-002 实施 |

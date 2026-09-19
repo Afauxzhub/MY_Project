@@ -213,6 +213,9 @@ def validate_indoor_name(name, category_folder_map=None):
     """
     categories = indoor_categories_from_map(category_folder_map)
     parts = name.split(u"_")
+    if parts[0] not in categories:
+        from pipeline.personal_naming import parse_name
+        return parse_name(name, categories)
     if len(parts) >= 3:
         parsed = {
             u"category":    parts[0],
@@ -683,6 +686,10 @@ def clean_string_native(raw_name, suffix=u""):
     """
     if not raw_name:
         return u"Untitled"
+
+    from pipeline.personal_naming import parse_name
+    if parse_name(raw_name)[0]:
+        return raw_name + suffix
 
     # 1. 去除括号内容
     out   = u""

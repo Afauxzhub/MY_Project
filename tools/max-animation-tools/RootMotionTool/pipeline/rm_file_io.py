@@ -69,13 +69,16 @@ def get_unity_outdoor_clip_open_path(unity_root, module_folder, type_folder, cha
     return os.path.join(unity_root, u"Generated", u"AnimationClips")
 
 
-def get_unity_clip_asset_path(clip_dir, fbx_path):
+def get_unity_clip_asset_path(clip_dir, fbx_path, source_root=None):
     """
     根据导出的 FBX 文件名，推导 Unity 动画片段的绝对路径。
     规则：动画片段与 FBX 同名，扩展名为 .anim。
     """
     if not clip_dir or not fbx_path:
         return u""
+    if source_root:
+        from pipeline.personal_naming import clip_path_from_fbx
+        return clip_path_from_fbx(clip_dir, fbx_path, source_root)
     stem = os.path.splitext(os.path.basename(fbx_path))[0]
     parts = stem.split(u"_")
     group = u"_".join(parts[:2]) if len(parts) >= 2 else stem

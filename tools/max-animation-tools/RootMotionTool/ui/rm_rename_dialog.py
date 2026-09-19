@@ -115,10 +115,10 @@ class RenameDialog(QtWidgets.QDialog):
         if self._anim_type == u"indoor":
             cats = indoor_categories_from_map(self._category_folder_map)
             hint_text = (
-                u"局内格式：<b>分类_角色名_动作名(_第四字段)</b><br>"
-                u"示例：Role_Lucci02_Skill03_Start　|　Elite_Blackcat_Break　|　Boss_Creature_Dead<br>"
-                u"第四字段如存在，只要求首字母大写且仅包含字母数字。<br>"
-                u"有效分类（来自设置→局内分类映射）：{0}"
+                u"个人格式：<b>角色_动作集_动作</b>，动作集可省略。<br>"
+                u"示例：Player_Unarmed_Run　|　Player_Sword_Idle　|　Wolf_Run<br>"
+                u"动作集不限制为 Unarmed/Armed；武器类型按需要命名。分类与制作阶段不进入个人名称。<br>"
+                u"旧格式仍兼容 分类_角色_动作(_阶段)，保留分类：{0}"
             ).format(u"、".join(cats))
         else:
             modules = sorted(merge_module_folder_map(self._module_folder_map).keys())

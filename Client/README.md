@@ -49,3 +49,5 @@ Unity Editor 安装目录属于本机工具配置，不放入仓库。当前电�
 运行 `Tools > MY Project > Validate Asset Workflow` 可检查目录和共享配置，不会修改当前场景。已按用户确认将 Root / Motion 节点设为 `Root` 并启用自动提取 `.anim`；曲线优化和 FBX 动画压缩暂时关闭，保留首条动画的数据检查基线。这只完成导入配置，真实根运动和重复发布引用仍待首条 FBX 验收。设置入口为 `Tools > Animation Pipeline > Settings`。
 
 本机 Max 发布工具的 Unity 路径需指向这个工程的 `Client/Assets`。共享配置使用相对路径，个人 `rm_config.json` 不提交。
+
+新动画使用 `Player_Unarmed_Run` 等短名称，后续按实际武器动作集扩展。个人短命名的 `.anim` 镜像 FBX 子目录，旧格式保持原分组。运行 `Tools > MY Project > Validate Animation Naming` 可验证双端共享样例及导出路径；真实 FBX 与根运动仍另行验收。

@@ -16,6 +16,7 @@ MonoBehaviour:
   outputRoot: Assets/Generated/AnimationClips
   autoExportOnImport: 1
   groupByFirstTwoNameSegments: 1
+  mirrorPersonalAnimationFolders: 1
   optimizeCurves: 0
   animationCompression: 0
   rootNode: Root
