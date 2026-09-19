@@ -33,7 +33,7 @@
 | --- | --- | --- | --- | --- | --- |
 | MOVE-001 | 功能开发 | Done | 最小第三人称移动接入与输入/相机/Motor 适配 | UNITY-001 完成 | [`MOVE-001.md`](tasks/MOVE-001.md) |
 | ASSET-001 | 工程基础 | Done | 个人资产目录、LFS 与共享动画导入配置 | UNITY-001 完成 | [`ASSET-001.md`](tasks/ASSET-001.md) |
-| ASSET-002 | 工具开发 | In Progress | 短命名、武器动作集与 Max / Unity 发布适配及本机部署 | ASSET-001 | [`ASSET-002.md`](tasks/ASSET-002.md) |
+| ASSET-002 | 工具开发 | Awaiting Runtime Validation | 短命名双端适配与本机部署已完成；待真实动画发布验收 | ASSET-001 | [`ASSET-002.md`](tasks/ASSET-002.md) |
 | ABILITY-001 | 功能开发 | Backlog | 一条 Timeline 技能从编辑、编译到运行事件的完整验证 | UNITY-001 完成 | — |
 | PROTO-001 | 战斗灰盒 | Backlog | 按 `PROTO-01` 至 `PROTO-07` 拆分第一版战斗闭环 | Unity 基线和所需基础适配完成 | — |
 | ANIM-001 | 工具验收 | Backlog | Max 到 Unity 动画发布链的真实环境验收 | ASSET-002 双端适配已部署且准备好骨架和一条测试动画 | — |

@@ -2,7 +2,7 @@
 
 | 字段 | 当前状态 |
 | --- | --- |
-| 项目阶段 | 最小第三人称移动闭环已完成；个人动画短命名双端适配中，随后验收首条 Root Motion 动画 |
+| 项目阶段 | 最小第三人称移动闭环已完成；短命名双端适配及本机部署完成，待首条 Root Motion 动画验收 |
 | 当前里程碑 | M1：玩家战斗最小灰盒（MOVE-001 已完成） |
 | Unity 基线 | Unity 6000.3.24f1（Unity 6.3 LTS） |
 | 任务索引 | [`tasks.md`](tasks.md) |
@@ -33,6 +33,7 @@
 - `Bootstrap.unity` 已完成创建、保存和批处理重开验证，目前只提供工程运行基线。
 - `LocomotionGreybox.unity` 已通过可重复批处理创建、保存、重开和结构验证，并完成人工 Play Mode 键盘移动与碰撞阻挡验收。
 - 资产目录和共享导入配置已通过 Unity 编辑器批处理检查；目前没有实际动画 FBX，尚未完成 Max 发布、根运动、无滑步和重复发布引用验收。
+- ASSET-002 已完成短命名 / 武器动作集解析、Max 新建及发布路径、Unity 提取路径和本机 Max 安装副本同步；Unity 路径测试与 Max 2020 Python 2.7 / PySide2 面板批处理通过，真实资产验收待补。
 - 玩家战斗目前处于进入灰盒验证前；`PROTO-01` 至 `PROTO-07` 尚未形成可运行闭环。
 - 完整技能、BD、生产系统、正式 Boss 和正式内容生产不属于当前里程碑。
 
@@ -56,4 +57,4 @@
 
 ## 下一项工作
 
-先完成 ASSET-002 的短命名适配和本机部署；用户可同时制作首条带 `Root` 轨迹的 `Player_Unarmed_Run.max`，按 ANIM-001 验证 Max → FBX → Unity `.anim` 的发布闭环，再推进动画驱动移动。角色登记见 [`../production/characters/Player.md`](../production/characters/Player.md)。现有 MOVE-001 仅是程序移动灰盒，不代表最终动作表现。
+用户制作首条带 `Root` 轨迹的 `Player_Unarmed_Run.max`，按 ANIM-001 验证 Max → FBX → Unity `.anim` 的发布闭环，并补齐 ASSET-002 真实资产验收，再推进动画驱动移动。角色登记见 [`../production/characters/Player.md`](../production/characters/Player.md)。现有 MOVE-001 仅是程序移动灰盒，不代表最终动作表现。
