@@ -106,8 +106,10 @@
 
 ## 当前限制
 
-- 当前仓库只有设计规范和项目 Skill，还没有 Unity 工程，因此首次接管时不应猜测 Unity 版本。
-- Git 仓库会同步 `AGENTS.md`、项目 Skill 和设计文档，但不会同步 Fork 登录状态、GitHub 登录缓存、个人级 Codex 配置或尚未提交的本地文件。
+- 当前仓库已经包含设计规范、项目 Skill、可复用 Unity 包、Max 动画工具源码，以及位于 `Client/` 的 Unity 工程。
+- Unity 版本为 Unity 6000.3.24f1（Unity 6.3 LTS），以 `Client/ProjectSettings/ProjectVersion.txt` 为仓库内版本依据；不得擅自升级。
+- 项目总体状态和下一项任务记录在 `docs/project/overview.md` 与 `docs/project/tasks.md`。
+- Git 仓库会同步 `AGENTS.md`、项目管理记录、项目 Skill、设计文档和源码，但不会同步 Codex 登录状态、GitHub 登录缓存、个人级 Codex 配置或尚未提交的本地文件。
 - 当前聊天记录可以作为参考，但长期有效的规则必须以仓库中的 `AGENTS.md` 和权威设计文档为准。
 
 ## 官方依据

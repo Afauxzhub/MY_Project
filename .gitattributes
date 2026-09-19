@@ -1,0 +1,11 @@
+*.cs text eol=lf
+*.asmdef text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+
+# Unity owns the YAML formatting of these generated files and emits meaningful
+# empty scalar values with trailing spaces.
+*.asset text eol=lf -whitespace
+*.meta text eol=lf -whitespace
+*.unity text eol=lf -whitespace

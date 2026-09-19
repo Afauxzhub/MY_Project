@@ -1,5 +1,19 @@
 # Project guidance
 
+## Project planning and task records
+
+1. Treat `docs/project/overview.md` as the current project-stage and milestone summary.
+2. Treat `docs/project/tasks.md` as the single task index. Do not maintain a separate backlog in chat.
+3. Use one task for one coherent, reviewable outcome. Create a task card under `docs/project/tasks/` when work spans multiple sessions, systems, or validation steps.
+4. Before implementation, record the goal, scope, authoritative references, dependencies, acceptance criteria, and required validation. Update the task status and handoff notes before ending the work session.
+5. Keep durable decisions in their authoritative design or architecture document. Task cards reference those documents; they do not become a second design specification.
+6. Use the statuses defined in `docs/project/tasks.md`. Mark work `Done` only after its stated acceptance criteria pass. Use `Awaiting Runtime Validation` when static work is complete but Unity, 3ds Max, animation, or gameplay validation is still outstanding.
+7. Subagents are temporary helpers for bounded investigation, test, or review work. The primary task remains responsible for integration, validation, and updating the task record.
+8. Do not let concurrent tasks edit the same files. Use separate Git worktrees for genuinely independent parallel implementation.
+9. At the start of a task, inspect the worktree and relevant task record. At handoff, report completed work, validation performed, remaining runtime gaps, and the next concrete action.
+
+The confirmed Unity editor baseline is Unity 6000.3.24f1 (Unity 6.3 LTS). `ProjectSettings/ProjectVersion.txt` becomes the repository source of truth after the Unity project is created. Do not silently upgrade it.
+
 ## Combat design source of truth
 
 For work involving player combat, combat resources, skills, builds, animation requirements, combat programming architecture, enemy attacks, Boss actions, or combat AI:
