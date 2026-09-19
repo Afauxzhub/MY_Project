@@ -7,18 +7,22 @@
 
 两端必须作为一条发布链共同维护：Max 负责生成和复制 FBX、写入定位请求；Unity 负责导入设置、提取 `.anim`、曲线处理和 Project 定位。
 
+个人项目的目录、命名、资产提交和发布流程以 [`../production/asset-workflow.md`](../production/asset-workflow.md) 为准。下列限制区分“可复用工具源码”与“个人游戏内容”，不再把全部游戏资产排除出版本管理。
+
 ## 可提交内容
 
 - Python、MaxScript、C# 源码。
 - 安装脚本、示例配置、README、验证脚本。
 - 与工具本身直接相关的 SVG/QSS 等轻量 UI 资源。
+- 个人美术源文件放在 `ArtSource/`，个人游戏资产放在 `Client/Assets/`，遵守 LFS 和 `.meta` 规则。
+- `Client/Assets/Generated/AnimationClips` 内发布生成的 `.anim` 与 `.meta` 作为工程可直接打开的发布结果提交。
 
 ## 禁止提交内容
 
 - 公司内网地址、公司工程绝对路径、账号、令牌和个人身份信息。
 - 真实的 `rm_config.json`、`afm_config.json`、`afm_user_config.json`、动作库用户配置。
-- `.max`、FBX、Prefab、贴图、角色配置等项目资产。
-- `.pyc`、日志、错误报告、临时目录、备份和生成结果。
+- 公司或未获许可的项目资产；混入 `tools/` 或通用 `packages/` 的游戏资产。
+- `.pyc`、日志、错误报告、临时目录、备份、游戏构建和非正式导出中间结果。
 
 ## 修改流程
 

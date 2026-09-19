@@ -2,12 +2,12 @@
 
 | 字段 | 当前状态 |
 | --- | --- |
-| 项目阶段 | 最小第三人称移动闭环已完成；准备进入后续灰盒能力 |
+| 项目阶段 | 最小第三人称移动闭环已完成；个人资产制作基线已配置，准备首条 Root Motion 动画验收 |
 | 当前里程碑 | M1：玩家战斗最小灰盒（MOVE-001 已完成） |
 | Unity 基线 | Unity 6000.3.24f1（Unity 6.3 LTS） |
 | 任务索引 | [`tasks.md`](tasks.md) |
 | Agent 工作方式 | [`agent-workflow.md`](agent-workflow.md) |
-| 最近更新 | 2026-09-19 |
+| 最近更新 | 2026-09-20 |
 
 ## 项目目标
 
@@ -22,6 +22,7 @@
 - `com.afauxzhub.timeline-abilities`：Timeline 技能编排和运行指令骨架，已完成源码静态检查。
 - `com.afauxzhub.animation-pipeline`：Unity 动画导入、Clip 导出、曲线处理与 Max 定位桥接。
 - `tools/max-animation-tools`：个人 3ds Max 动画工具源码、安装脚本和静态验证脚本。
+- 个人资产目录、Git LFS 规则、共享动画导入配置与只读检查入口，规范见 [`../production/asset-workflow.md`](../production/asset-workflow.md)。Player 使用 Max 2020 / Biped / `Root`，首轮为空手移动动画。
 
 以上源码存在不等于已经完成 Unity 或 3ds Max 运行验收。
 
@@ -31,6 +32,7 @@
 - 三个本地包已经完成 Unity Package Manager 导入和程序集编译；其具体玩法、编辑器工作流与运行时行为仍需分别验收。
 - `Bootstrap.unity` 已完成创建、保存和批处理重开验证，目前只提供工程运行基线。
 - `LocomotionGreybox.unity` 已通过可重复批处理创建、保存、重开和结构验证，并完成人工 Play Mode 键盘移动与碰撞阻挡验收。
+- 资产目录和共享导入配置已通过 Unity 编辑器批处理检查；目前没有实际动画 FBX，尚未完成 Max 发布、根运动、无滑步和重复发布引用验收。
 - 玩家战斗目前处于进入灰盒验证前；`PROTO-01` 至 `PROTO-07` 尚未形成可运行闭环。
 - 完整技能、BD、生产系统、正式 Boss 和正式内容生产不属于当前里程碑。
 
@@ -54,4 +56,4 @@
 
 ## 下一项工作
 
-根据 M1 灰盒依赖拆分下一项可执行任务；候选为 Timeline 技能完整链验证或首个战斗循环灰盒。
+用户制作首条带 `Root` 轨迹的 `Player` 空手测试动画，按 ANIM-001 验证 Max → FBX → Unity `.anim` 的发布闭环，再推进动画驱动移动。角色登记见 [`../production/characters/Player.md`](../production/characters/Player.md)。现有 MOVE-001 仅是程序移动灰盒，不代表最终动作表现。

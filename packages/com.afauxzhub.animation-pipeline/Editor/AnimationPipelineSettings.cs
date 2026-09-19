@@ -5,27 +5,29 @@ using UnityEngine;
 namespace Afauxzhub.AnimationPipeline.Editor
 {
     [FilePath("ProjectSettings/AfauxzhubAnimationPipelineSettings.asset", FilePathAttribute.Location.ProjectFolder)]
-    internal sealed class AnimationPipelineSettings : ScriptableSingleton<AnimationPipelineSettings>
+    public sealed class AnimationPipelineSettings : ScriptableSingleton<AnimationPipelineSettings>
     {
         [SerializeField] private string sourceRoot = "Assets/Art/Animations";
         [SerializeField] private string outputRoot = "Assets/Generated/AnimationClips";
         [SerializeField] private bool autoExportOnImport;
         [SerializeField] private bool groupByFirstTwoNameSegments = true;
         [SerializeField] private bool optimizeCurves = true;
+        [SerializeField] private ModelImporterAnimationCompression animationCompression = ModelImporterAnimationCompression.Optimal;
         [SerializeField] private string rootNode = string.Empty;
         [SerializeField] private string motionNodeName = "root";
         [SerializeField] private bool importBlendShapeDeformPercent;
         [SerializeField] private bool resampleCurves;
 
-        internal string SourceRoot => NormalizeAssetPath(sourceRoot);
-        internal string OutputRoot => NormalizeAssetPath(outputRoot);
-        internal bool AutoExportOnImport => autoExportOnImport;
-        internal bool GroupByFirstTwoNameSegments => groupByFirstTwoNameSegments;
-        internal bool OptimizeCurves => optimizeCurves;
-        internal string RootNode => rootNode ?? string.Empty;
-        internal string MotionNodeName => motionNodeName ?? string.Empty;
-        internal bool ImportBlendShapeDeformPercent => importBlendShapeDeformPercent;
-        internal bool ResampleCurves => resampleCurves;
+        public string SourceRoot => NormalizeAssetPath(sourceRoot);
+        public string OutputRoot => NormalizeAssetPath(outputRoot);
+        public bool AutoExportOnImport => autoExportOnImport;
+        public bool GroupByFirstTwoNameSegments => groupByFirstTwoNameSegments;
+        public bool OptimizeCurves => optimizeCurves;
+        public ModelImporterAnimationCompression AnimationCompression => animationCompression;
+        public string RootNode => rootNode ?? string.Empty;
+        public string MotionNodeName => motionNodeName ?? string.Empty;
+        public bool ImportBlendShapeDeformPercent => importBlendShapeDeformPercent;
+        public bool ResampleCurves => resampleCurves;
 
         internal bool IsSourceFbx(string assetPath)
         {
@@ -91,6 +93,7 @@ namespace Afauxzhub.AnimationPipeline.Editor
             Draw("autoExportOnImport", "导入 FBX 时自动导出");
             Draw("groupByFirstTwoNameSegments", "按文件名前两段分组");
             Draw("optimizeCurves", "导出后优化曲线");
+            Draw("animationCompression", "FBX 动画压缩");
             Draw("rootNode", "Root 节点");
             Draw("motionNodeName", "Motion 节点");
             Draw("importBlendShapeDeformPercent", "导入 BlendShape Deform Percent");

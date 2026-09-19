@@ -39,9 +39,9 @@ namespace Afauxzhub.AnimationPipeline.Editor
             changed |= SetRootNode(importer, settings.RootNode);
             changed |= SetAnimatedCustomProperties(importer, true);
 
-            if (importer.animationCompression != ModelImporterAnimationCompression.Optimal)
+            if (importer.animationCompression != settings.AnimationCompression)
             {
-                importer.animationCompression = ModelImporterAnimationCompression.Optimal;
+                importer.animationCompression = settings.AnimationCompression;
                 changed = true;
             }
 

@@ -47,3 +47,21 @@ crashlytics-build.properties
 
 # Local validation scratch projects
 /.validation-temp/
+
+# DCC scratch / local backups (published FBX and source MAX are tracked via LFS)
+/ArtSource/**/[Aa]utoback/
+/ArtSource/**/[Bb]ackups/
+/ArtSource/**/[Pp]reviews/
+/ArtSource/**/FBX/
+*.bak
+*.max.bak
+*.blend1
+*.blend2
+__pycache__/
+*.pyc
+
+# Max tool machine-specific settings; example configs remain tracked
+/tools/max-animation-tools/**/rm_config.json
+/tools/max-animation-tools/**/afm_config.json
+/tools/max-animation-tools/**/afm_user_config.json
+/tools/max-animation-tools/**/AnimationTools_DevMachine.flag

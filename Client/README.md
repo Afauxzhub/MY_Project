@@ -41,3 +41,11 @@ Unity Editor 安装目录属于本机工具配置，不放入仓库。当前电�
 工具会确定性重建 `Assets/Scenes/LocomotionGreybox.unity`、创建灰盒移动配置，并验证玩家、相机、地面、障碍和适配器接线。Play Mode 中使用 `WASD` 或方向键移动；选中 `Player` 可在 Inspector 观察输入、目标方向、求解方向、偏航速度和转向意图，并在 Scene 视图看到青色目标方向与黄色求解方向 Gizmo。
 
 该场景只验证胶囊体程序移动。速度、转向和镜头偏移均为灰盒值，不代表最终手感。
+
+## 个人资产制作
+
+目录、命名、LFS 和发布规范见 [`../docs/production/asset-workflow.md`](../docs/production/asset-workflow.md)；角色骨架信息见 [`../docs/production/characters/Player.md`](../docs/production/characters/Player.md)。
+
+运行 `Tools > MY Project > Validate Asset Workflow` 可检查目录和共享配置，不会修改当前场景。已按用户确认将 Root / Motion 节点设为 `Root` 并启用自动提取 `.anim`；曲线优化和 FBX 动画压缩暂时关闭，保留首条动画的数据检查基线。这只完成导入配置，真实根运动和重复发布引用仍待首条 FBX 验收。设置入口为 `Tools > Animation Pipeline > Settings`。
+
+本机 Max 发布工具的 Unity 路径需指向这个工程的 `Client/Assets`。共享配置使用相对路径，个人 `rm_config.json` 不提交。

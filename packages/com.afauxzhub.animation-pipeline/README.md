@@ -25,6 +25,10 @@
 - `.anim` 输出目录：`Assets/Generated/AnimationClips`
 - 默认关闭自动导出，避免刚安装就改动现有工程资源。
 
+`ProjectSettings/AfauxzhubAnimationPipelineSettings.asset` 可作为项目共享配置提交（仅使用相对资产路径）。`AnimationPipelineSettings` 提供只读设置供项目校验工具使用。FBX 动画压缩可配置，包默认保持 Optimal；新骨架的原始数据验收建议使用 Off，并暂时关闭导出后曲线优化。Root/Motion 节点须依据真实导出骨架配置。
+
+当前 `.anim` 按 FBX 文件名前两段分组，例如 `Role_Player_LocomotionRunForward.fbx` 输出到 `Assets/Generated/AnimationClips/Role_Player/Role_Player_LocomotionRunForward.anim`。重新导出会更新已有 Clip、保留其 GUID，同时覆盖 Clip 内的手工修改；项目动作元数据应独立保存。
+
 ## 手动导出
 
 1. 在 Project 窗口选中一个或多个 FBX。
