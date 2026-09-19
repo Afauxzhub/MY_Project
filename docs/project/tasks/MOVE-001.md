@@ -2,7 +2,7 @@
 
 | 字段 | 内容 |
 | --- | --- |
-| 状态 | In Progress |
+| 状态 | Awaiting Runtime Validation |
 | 类型 | 功能开发 |
 | 里程碑 | M1：玩家战斗最小灰盒 |
 | 负责人 | MOVE-001 Codex 任务 |
@@ -60,31 +60,53 @@
 
 ## 验收条件
 
-- [ ] Bootstrap 或独立灰盒场景中存在胶囊玩家、地面、碰撞障碍和可观察相机。
+- [x] Bootstrap 或独立灰盒场景中存在胶囊玩家、地面、碰撞障碍和可观察相机。
 - [ ] 键盘输入可驱动角色按相机水平轴移动；无输入时角色停止。
 - [ ] 角色连续转向由 `HeadingSolver` 输出驱动，不瞬间复制目标方向。
-- [ ] 位置和旋转只有 Motor 写入，碰撞不会被 Transform 直写绕过。
-- [ ] 关键 `LocomotionIntent` 值可通过 Inspector、Gizmo 或明确日志观察。
-- [ ] 场景或必需资产可通过项目 Editor 工具重复创建/验证。
-- [ ] Unity 程序集编译无错误，现有工程基线检查继续通过。
-- [ ] 给出短小的 Play Mode 人工验收步骤，并记录实际执行结果或明确等待用户验收。
-- [ ] 更新任务索引、任务卡和项目总览，区分静态验证与实际移动手感验证。
+- [x] 位置和旋转只有 Motor 写入；实际碰撞阻挡等待 Play Mode 验收。
+- [x] 关键 `LocomotionIntent` 值可通过 Inspector 和 Gizmo 观察。
+- [x] 场景或必需资产可通过项目 Editor 工具重复创建/验证。
+- [x] Unity 程序集编译无错误，现有工程基线检查继续通过。
+- [x] 给出短小的 Play Mode 人工验收步骤，并明确等待用户验收。
+- [x] 更新任务索引、任务卡和项目总览，区分静态验证与实际移动手感验证。
+
+## 实施结果
+
+- `MovementInputSource` 隔离输入设备，当前 `KeyboardMovementInput` 提供 `WASD` 和方向键输入。
+- `FixedFollowCameraReference` 只提供相机参考轴并以固定偏置跟随玩家；自由/锁定镜头不在本任务中。
+- `ThirdPersonLocomotionBrain` 调用包内 `CameraRelativeMovement`、`HeadingSolver`、`LocomotionIntent` 和 `LocomotionProfile`，不复制数学实现。
+- `CharacterControllerMotor` 是玩家根节点运行时位置和旋转的唯一写入者，并通过 `CharacterController.Move` 处理碰撞位移。
+- `LocomotionGreyboxValidation` 可确定性重建配置资产和独立灰盒场景，保存后重新打开并验证接线、碰撞体与 Build Settings。
+- `Player` Inspector 暴露输入、目标方向、求解方向、速度、朝向误差、偏航速度、转向混合和起步方向；Scene 视图用青色/黄色 Gizmo 区分目标与求解方向。
 
 ## 验证记录
 
 | 日期 | 环境 | 检查 | 结果 | 证据/备注 |
 | --- | --- | --- | --- | --- |
+| 2026-09-19 | Unity 6000.3.24f1 Batchmode | 程序集编译、创建场景、保存后重开与结构验证 | 通过 | 退出码 0；日志输出 `[MY_Project Locomotion] PASS` |
+| 2026-09-19 | Unity 6000.3.24f1 Batchmode | 第二次执行相同场景工具 | 通过 | 退出码 0；证明资产和场景可重复重建、重开与验证 |
+| 2026-09-19 | Unity 6000.3.24f1 Batchmode | 既有 `ProjectBaselineValidation` | 通过 | 退出码 0；日志输出 `[MY_Project Baseline] PASS` |
+| 2026-09-19 | PowerShell / Git | 玩家根节点写入所有权与包 API 使用扫描、`git diff --check` | 通过 | 运行时代码中只有 Motor 写玩家旋转并调用 `CharacterController.Move`；Brain 直接使用移动包四个稳定 API；无空白错误 |
+| 2026-09-19 | Unity Play Mode | 键盘输入、停止、连续转向、实际碰撞和主观手感 | 等待人工验收 | 批处理不模拟真实键盘操作，也不能替代手感判断 |
+
+## Play Mode 人工验收
+
+1. 在 Unity 运行 `Tools > MY Project > Create or Validate Locomotion Greybox`，打开生成的 `LocomotionGreybox` 场景并进入 Play Mode。
+2. 选中 `Player`，依次短按和长按 `WASD`（或方向键）；确认方向以相机水平轴为基准、松键立即停止，Inspector 中目标方向、求解方向、偏航速度与转向意图随操作变化。
+3. 从静止状态按 `A` 或 `D`，确认黄色求解方向逐步追向青色目标方向而非瞬间跳转；连续切换方向时角色保持平滑转向。
+4. 重新开始场景后持续按 `W` 撞前方墙，再持续按 `D` 撞侧墙；确认胶囊被阻挡且没有穿墙或被 Transform 直写绕过。
 
 ## 已知问题与未验证边界
 
 - 当前没有正式角色模型或动画，视觉表现使用胶囊体。
 - 键鼠与手柄的最终输入方案、自由镜头和动作混合不在本任务中封口。
 - 移动速度、转弯半径和镜头距离均为灰盒值。
+- 自动验证覆盖编译、场景重建/重开、接线、所有权和碰撞体存在性；真实键盘、碰撞行为与移动手感仍需按上述步骤在 Play Mode 验收。
 
 ## 交接
 
-- 已完成：任务范围、架构边界和验收条件已建立。
-- 已验证：Unity 基线和移动数学包可在 Unity 6000.3.24f1 中编译。
-- 尚未验证：项目移动适配器、灰盒场景和 Play Mode 手感。
-- 下一步：新 Codex 任务读取本卡与权威架构文档后实现并验证。
-- 相关提交：待完成后填写。
+- 已完成：项目输入/相机/Brain/Motor 适配器、灰盒配置、可重复场景生成验证和调试可观察性。
+- 已验证：Unity 编译、灰盒场景创建/重开、接线和碰撞体结构、唯一 Motor 写入边界、既有工程基线。
+- 尚未验证：真人键盘输入、连续转向观感、停止和碰撞阻挡的 Play Mode 验收。
+- 下一步：按本卡四步执行短验收；通过后勾选余下运行项并将状态改为 `Done`。
+- 相关提交：MOVE-001 实现提交（见 Git 历史）。

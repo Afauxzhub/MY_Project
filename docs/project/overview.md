@@ -2,8 +2,8 @@
 
 | 字段 | 当前状态 |
 | --- | --- |
-| 项目阶段 | Unity 工程基线已建立；准备进入首个可玩灰盒 |
-| 当前里程碑 | M1：玩家战斗最小灰盒（待拆分首项实现任务） |
+| 项目阶段 | 最小第三人称移动闭环已实现；等待 Play Mode 人工验收 |
+| 当前里程碑 | M1：玩家战斗最小灰盒（MOVE-001 等待运行验收） |
 | Unity 基线 | Unity 6000.3.24f1（Unity 6.3 LTS） |
 | 任务索引 | [`tasks.md`](tasks.md) |
 | Agent 工作方式 | [`agent-workflow.md`](agent-workflow.md) |
@@ -30,6 +30,7 @@
 - Unity 工程位于 `Client/`，版本由 `Client/ProjectSettings/ProjectVersion.txt` 固定为 6000.3.24f1。
 - 三个本地包已经完成 Unity Package Manager 导入和程序集编译；其具体玩法、编辑器工作流与运行时行为仍需分别验收。
 - `Bootstrap.unity` 已完成创建、保存和批处理重开验证，目前只提供工程运行基线。
+- `LocomotionGreybox.unity` 已通过可重复批处理创建、保存、重开和结构验证；真人键盘、碰撞与移动手感尚待 Play Mode 验收。
 - 玩家战斗目前处于进入灰盒验证前；`PROTO-01` 至 `PROTO-07` 尚未形成可运行闭环。
 - 完整技能、BD、生产系统、正式 Boss 和正式内容生产不属于当前里程碑。
 
@@ -53,4 +54,4 @@
 
 ## 下一项工作
 
-根据 `PROTO-01` 至 `PROTO-07` 拆分 M1 的首项实现任务。当前候选从最小第三人称移动接入开始，再按灰盒依赖安排 Timeline 技能验证和战斗循环实现。
+按 `MOVE-001` 任务卡的四步流程完成 Play Mode 人工验收；通过后关闭该任务，再按灰盒依赖安排 Timeline 技能验证和战斗循环实现。

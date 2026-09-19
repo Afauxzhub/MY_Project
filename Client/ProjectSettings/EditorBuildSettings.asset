@@ -8,5 +8,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Bootstrap.unity
     guid: 0eb1a1383fc298a4883828602fa92679
+  - enabled: 1
+    path: Assets/Scenes/LocomotionGreybox.unity
+    guid: 4611a57fa6f90c545a51efb4976da707
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

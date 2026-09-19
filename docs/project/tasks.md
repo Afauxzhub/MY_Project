@@ -31,7 +31,7 @@
 
 | ID | 类型 | 状态 | 方向 | 开始条件 |
 | --- | --- | --- | --- | --- |
-| MOVE-001 | 功能开发 | In Progress | 最小第三人称移动接入与输入/相机/Motor 适配 | UNITY-001 完成 | [`MOVE-001.md`](tasks/MOVE-001.md) |
+| MOVE-001 | 功能开发 | Awaiting Runtime Validation | 最小第三人称移动接入与输入/相机/Motor 适配 | UNITY-001 完成 | [`MOVE-001.md`](tasks/MOVE-001.md) |
 | ABILITY-001 | 功能开发 | Backlog | 一条 Timeline 技能从编辑、编译到运行事件的完整验证 | UNITY-001 完成 |
 | PROTO-001 | 战斗灰盒 | Backlog | 按 `PROTO-01` 至 `PROTO-07` 拆分第一版战斗闭环 | Unity 基线和所需基础适配完成 |
 | ANIM-001 | 工具验收 | Backlog | Max 到 Unity 动画发布链的真实环境验收 | UNITY-001 完成且准备好测试资产 |
