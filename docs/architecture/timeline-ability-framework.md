@@ -1,8 +1,10 @@
 # Timeline 技能框架边界
 
+> 状态：保留为特殊序列方案。普通攻击、常规技能和玩家主动画 FSM 的默认方向已由 [`animation-state-machine-architecture.md`](animation-state-machine-architecture.md) 取代。现有包不删除，但在奥义、多角色同步、过场或复杂镜头进入范围前不继续扩展。
+
 ## 原则
 
-Timeline 是技能编排工具，不是玩家战斗状态机，也不是资源系统。
+Timeline 是特殊技能与演出序列的编排工具，不是玩家战斗状态机、普通动作编辑器或资源系统。
 
 `AbilityPlanCompiler` 把编辑 Timeline 转为 `AbilityRuntimePlan`；运行时的 `AbilitySequencePlayer` 只按时间派发指令。项目通过 `IAbilityInstructionSink` 把语义指令接到动画、命中盒、位移、镜头、特效和战斗事件。
 
@@ -35,6 +37,6 @@ Timeline 是技能编排工具，不是玩家战斗状态机，也不是资源�
 - 不让动画 Clip 的长度自动成为无法单独调整的判定窗口。
 - 不把公司工程的 SkillData、ECS Entity、MemoryPack 或 GameAction 类型复制进个人包。
 
-## 第一版扩展范围
+## 恢复扩展的条件
 
-按 `PROTO-01`，先只扩展一个基础伤害技能需要的语义：动画、攻击窗口、命中事件、取消窗口和后摇结束。资源事件、联动状态、复杂位移和镜头轨道等到基础战斗循环能运行后再加。
+只有当奥义、多角色同步、过场或复杂镜头成为已排期需求时，才恢复本包的运行时验收和语义扩展。`PROTO-01` 的普通攻击、基础伤害技能和取消窗口优先通过 Animator-first 原型与 `ActionDefinition` 编辑器验证。

@@ -2,7 +2,7 @@
 
 本文件是项目唯一任务清单。长期设计写入对应权威文档；详细执行信息写入 `tasks/` 下的任务卡。
 
-最近更新：2026-09-20
+最近更新：2026-09-30
 
 ## 状态定义
 
@@ -34,9 +34,10 @@
 | MOVE-001 | 功能开发 | Done | 最小第三人称移动接入与输入/相机/Motor 适配 | UNITY-001 完成 | [`MOVE-001.md`](tasks/MOVE-001.md) |
 | ASSET-001 | 工程基础 | Done | 个人资产目录、LFS 与共享动画导入配置 | UNITY-001 完成 | [`ASSET-001.md`](tasks/ASSET-001.md) |
 | ASSET-002 | 工具开发 | Awaiting Runtime Validation | 短命名双端适配与本机部署已完成；待真实动画发布验收 | ASSET-001 | [`ASSET-002.md`](tasks/ASSET-002.md) |
-| ABILITY-001 | 功能开发 | Backlog | 一条 Timeline 技能从编辑、编译到运行事件的完整验证 | UNITY-001 完成 | — |
+| ABILITY-001 | 功能开发 | Deferred | Timeline 特殊序列链验证；不再作为普通战斗动作或玩家主动画 FSM | 奥义、多角色同步、过场或复杂镜头进入排期 | — |
 | PROTO-001 | 战斗灰盒 | Backlog | 按 `PROTO-01` 至 `PROTO-07` 拆分第一版战斗闭环 | Unity 基线和所需基础适配完成 | — |
 | ANIM-001 | 工具验收 | Backlog | Max 到 Unity 动画发布链的真实环境验收 | ASSET-002 双端适配已部署且准备好骨架和一条测试动画 | — |
+| ANIM-002 | 工具开发 | Backlog | Animator-first 动画图与战斗动作编辑器原型验证 | Unity 基线；真实表现验收依赖 ANIM-001 | [`ANIM-002.md`](tasks/ANIM-002.md) |
 
 ## 新任务登记规则
 
