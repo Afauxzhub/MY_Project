@@ -68,7 +68,7 @@ namespace Afauxzhub.CharacterLocomotion
             float catchUpYawRate = absoluteError / Mathf.Max(0.01f, profile.headingCatchUpTime);
             float allowedYawRate = Mathf.Min(
                 profile.maximumYawRate,
-                Mathf.Max(radiusYawRate, catchUpYawRate));
+                profile.constrainArcRadius && speed > 0.1f ? radiusYawRate : Mathf.Max(radiusYawRate, catchUpYawRate));
             float targetYawRate = Mathf.Clamp(
                 headingError / Mathf.Max(0.01f, profile.headingCatchUpTime),
                 -allowedYawRate,
@@ -85,10 +85,10 @@ namespace Afauxzhub.CharacterLocomotion
                 targetYawRate,
                 yawAcceleration * deltaTime);
 
-            float step = Mathf.Clamp(
-                headingError,
-                -Mathf.Abs(commandedYawRate) * deltaTime,
-                Mathf.Abs(commandedYawRate) * deltaTime);
+            commandedYawRate = Mathf.Clamp(commandedYawRate, -allowedYawRate, allowedYawRate);
+
+            float step = commandedYawRate * deltaTime;
+            if (Mathf.Sign(step) == Mathf.Sign(headingError) && Mathf.Abs(step) > absoluteError) step = headingError;
             solvedDirection = Quaternion.AngleAxis(step, Vector3.up) * solvedDirection;
             solvedDirection.y = 0f;
             solvedDirection.Normalize();

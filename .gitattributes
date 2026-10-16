@@ -17,6 +17,8 @@
 
 # Personal DCC source and binary game assets. Install Git LFS on every workstation.
 *.[mM][aA][xX] filter=lfs diff=lfs merge=lfs -text
+ArtSource/Characters/Player/Rig/KyKiskeHybrid/*.bip filter=lfs diff=lfs merge=lfs -text
+ArtSource/Characters/Player/Rig/KyKiskeHybrid/*.fig filter=lfs diff=lfs merge=lfs -text
 *.[fF][bB][xX] filter=lfs diff=lfs merge=lfs -text
 *.[bB][lL][eE][nN][dD] filter=lfs diff=lfs merge=lfs -text
 *.[pP][sS][dD] filter=lfs diff=lfs merge=lfs -text

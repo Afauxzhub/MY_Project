@@ -120,6 +120,8 @@ Timeline 负责编排“什么时候发生什么”，战斗控制器负责“�
 
 ## 7. 2026-09-30 动画架构决策
 
+历史记录：2026-10-15 用户明确要求取消 Animator 连线式制作。当前采用动作槽、共享衔接配方与 Playables 播放适配器方向；旧原型保留，不再继续整理连线。以下旧决定中“Animator 主要可视化入口”已被 [`animation-state-machine-architecture.md` 第 0 节](animation-state-machine-architecture.md#0-当前决策动作配置优先不维护-animator-连线)取代；玩法权限与表现分离仍保留。
+
 后续调查确认，当前项目把动画效果和编辑可见性放在复用 Timeline 技能链之前。因此：
 
 - Animator Controller 成为玩家动画状态、过渡和混合的主要可视化入口。

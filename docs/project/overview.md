@@ -2,12 +2,12 @@
 
 | 字段 | 当前状态 |
 | --- | --- |
-| 项目阶段 | 最小第三人称移动闭环已完成；短命名双端适配及本机部署完成，待首条 Root Motion 动画验收 |
+| 项目阶段 | 最小第三人称移动闭环已完成；当前优先无连线动画制作与完整双套移动；首条个人 Root Motion 动画发布仍待验收 |
 | 当前里程碑 | M1：玩家战斗最小灰盒（MOVE-001 已完成） |
 | Unity 基线 | Unity 6000.3.24f1（Unity 6.3 LTS） |
 | 任务索引 | [`tasks.md`](tasks.md) |
 | Agent 工作方式 | [`agent-workflow.md`](agent-workflow.md) |
-| 最近更新 | 2026-09-20 |
+| 最近更新 | 2026-10-16 |
 
 ## 项目目标
 
@@ -22,20 +22,32 @@
 - `com.afauxzhub.timeline-abilities`：Timeline 技能编排和运行指令骨架，已完成源码静态检查。
 - `com.afauxzhub.animation-pipeline`：Unity 动画导入、Clip 导出、曲线处理与 Max 定位桥接。
 - `tools/max-animation-tools`：个人 3ds Max 动画工具源码、安装脚本和静态验证脚本。
+- 旧 Animator-first 原型：双配置 Locomotion、可视化动作编辑器、Animator/测试场景生成器、Generic 脚部 IK 与可选骨盆补偿、绑定审核工具。新参考角色已在 Unity 6000.3 独立场景完成双套机制 Play、静态地形 IK 与代表性界面操作检查；Editor 17 项及纯逻辑 57 项断言通过。连线制作路线已冻结，现有实现保留为回归基线，不代表完整动画表现通过。见 [`ANIM-002`](tasks/ANIM-002.md)。
 - 个人资产目录、Git LFS 规则、共享动画导入配置与只读检查入口，规范见 [`../production/asset-workflow.md`](../production/asset-workflow.md)。Player 使用 Max 2020 / Biped / `Root`，首轮为空手移动动画。
+- 无连线新路径：MotionLibrary / 共享配方、Playables 单输出播放器、中文动作工作台、隔离预览、Play 副本与显式保存；双套速度/方向混合、起停/转向/加减速与真实跳跃基础机制。新场景不带 Animator Controller，旧场景保留。入口与实现边界见动画架构第 0.5 节。
+- 2026-10-16 代码优先制作闭环 [MOVE-011](tasks/MOVE-011.md) 已 Done：独立新角色向导、候选审核/批量填槽、资源需求导出、模式专用配置、原地转身、支撑脚/速度元数据、图形裁剪与内置帮助已落地；窗口激活阻塞解除，最终运行版 30/60/120 目标回放和真实编辑界面闭环通过，修复填槽后预览跳槽。操作见 [工作台指南](../tools/motion-workbench-guide.md)。不要求用户先补资源；完整输入/地形矩阵、真实 Root Motion、动态锁脚及最终美术验收仍分开。
+- 本地参考角色外观已补齐原贴图与兼容材质，辅助阴影网格不再遮挡身体；新测试场景与预览模型可用于观察姿势。仅本地资源，不提交、不迁移公司渲染管线；材质验证见 [`ASSET-003`](tasks/ASSET-003.md)，完整动画表现仍按 MOVE 清单验收。
 
 以上源码存在不等于已经完成 Unity 或 3ds Max 运行验收。
 
+Ky Kiske 1.8 米 Biped 混合绑定试版已生成，Max 构建、权重保形、关键帧保存重开和专用动画 FBX 回读已有实测证据；入口及待验收项见 [`RIG-002`](tasks/RIG-002.md)。
+
 ## 当前边界
+
+2026-10-16 追加 [MOVE-012](tasks/MOVE-012.md)：237 步连续输入 + 24 个 Motor 地形用例已在 30/60/120 目标下通过，修复坡面误离地、落边动量/离地权限和连续中断残留节点；不等待新资产。旧回归及原资产保护也已通过，正在远端交付。原工作台界面沿用 MOVE-011 的验收结果，真实资源、第二套真实骨架、Root Motion、物理设备/手感及动态锁脚仍单独验收。
 
 - Unity 工程位于 `Client/`，版本由 `Client/ProjectSettings/ProjectVersion.txt` 固定为 6000.3.24f1。
 - 三个本地包已经完成 Unity Package Manager 导入和程序集编译；其具体玩法、编辑器工作流与运行时行为仍需分别验收。
+- MCP for Unity 10.3.0 原生工具入口已恢复，个人工程/实例/编辑器/Console 读取已通过，连接任务 [`UNITY-002`](tasks/UNITY-002.md) 完成。动画与 Play 验收属于另获授权的 ANIM-002，不由连接成功代替。
 - `Bootstrap.unity` 已完成创建、保存和批处理重开验证，目前只提供工程运行基线。
 - `LocomotionGreybox.unity` 已通过可重复批处理创建、保存、重开和结构验证，并完成人工 Play Mode 键盘移动与碰撞阻挡验收。
 - 资产目录和共享导入配置已通过 Unity 编辑器批处理检查；目前没有实际动画 FBX，尚未完成 Max 发布、根运动、无滑步和重复发布引用验收。
 - ASSET-002 已完成短命名 / 武器动作集解析、Max 新建及发布路径、Unity 提取路径和本机 Max 安装副本同步；Unity 路径测试与 Max 2020 Python 2.7 / PySide2 面板批处理通过，真实资产验收待补。
 - 玩家战斗目前处于进入灰盒验证前；`PROTO-01` 至 `PROTO-07` 尚未形成可运行闭环。
+- ANIM-002 已在独立场景进行 30/60/120 fps 目标下的机制测试，修复 Animator 过渡自打断。新角色加入可选骨盆下沉后静态坡面/台阶目标可到达，但落地瞬态、接触曲线、脚滑及脚底朝向仍需迭代。已实看原生图当前/下一状态，完成逐帧、Hitbox 拖拽/Undo；图连线仍过密。临时参考和报告留在忽略目录；原场景/Build Settings 未改，不占用 Max，不引入 Motion Matching。
+- 按用户要求替换的新参考角色已接入另一份独立场景：双套 Profile、Animator 和角色 Prefab（17 移动槽、8 动作槽）完成运行机制验收。旧角色资产与测试保留，不能将机制通过当作缺方向动作、接触曲线或完整美术质量通过。本轮结束已退出 Play、场景 clean。
 - 完整技能、BD、生产系统、正式 Boss 和正式内容生产不属于当前里程碑。
+- 2026-10-15 已实施无连线播放器/工作台与独立场景，并在 Unity 验证代表性 UI 和 Play 链。新核心 123 项 Editor、60 项纯逻辑断言通过；仍有缺 Clip、完整配置/转场边界和第二角色验收，不能称全部移动效果完成。MOVE-002 待完整艺术操作验收，MOVE-003 为当前主任务；MOVE-004 至 MOVE-009 已接共用底座、分别列剩余代码与资源缺口。MOVE-010 动态锁脚/滑步仍最后处理，新场景 IK 关闭。
 
 ## 里程碑
 
@@ -51,10 +63,14 @@
 
 进入条件：M0 完成，Unity 工程和基础包能够稳定编译运行。
 
+当前用户优先支线是完整移动动画制作与测试；它服务于后续战斗，不代表 `PROTO-01` 至 `PROTO-07` 已完成或被改写。阶段性效果和逐项验收见 [`tasks.md`](tasks.md) 的移动动画实施清单。
+
 ### 后续范围
 
 移动手感、技能联动、动画生产链、Boss、BD 与生产系统在前置灰盒给出证据后逐步拆分。未进入当前里程碑的内容保留在任务索引中，不提前细化成大量任务。
 
 ## 下一项工作
 
-用户制作首条带 `Root` 轨迹的 `Player_Unarmed_Run.max`，按 ANIM-001 验证 Max → FBX → Unity `.anim` 的发布闭环，并补齐 ASSET-002 真实资产验收，再推进动画驱动移动。角色登记见 [`../production/characters/Player.md`](../production/characters/Player.md)。现有 MOVE-001 仅是程序移动灰盒，不代表最终动作表现。
+MOVE-011 已关闭程序位移制作闭环。继续按 [`MOVE-003`](tasks/MOVE-003.md) 至 [`MOVE-009`](tasks/MOVE-009.md) 的索引顺序关闭剩余缺口：现有资源可先扩展坡面/落边、快速镜头及完整输入串联机制；真实 Walk、战斗 Sprint 等到位后再验循环/步频和美术衔接。资源审核矩阵和代表性配方编辑操作已通过，不再重复作为未落地功能。动态锁脚/滑步最后处理；当前阶段不占用 Max，也不替代下述个人资产制作与 ANIM-001 发布验收。
+
+先试用 RIG-002 绑定并完成控制与变形验收，再制作首条带 `Root` 轨迹的 `Player_Unarmed_Run.max`。随后按 ANIM-001 适配并验证 Max → FBX → Unity `.anim` 的发布闭环，补齐 ASSET-002 真实资产验收，再推进动画驱动移动。角色登记见 [`../production/characters/Player.md`](../production/characters/Player.md)。现有 MOVE-001 仅是程序移动灰盒，不代表最终动作表现。

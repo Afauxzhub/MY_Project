@@ -6,6 +6,7 @@
 
 | 内容 | 目录 | 谁修改 / 版本管理 |
 | --- | --- | --- |
+| 角色原画、四视图、风格稿与生成记录 | `ArtSource/Characters/<角色代号>/Design` | 原画制作端；图片按现有 Git LFS 规则，说明文档用普通 Git |
 | 模型、绑定、动画、贴图的制作源文件 | `ArtSource/Characters/<角色代号>/Model`、`Rig`、`Animations`、`Textures` | 制作端；大型二进制 Git LFS |
 | 场景、UI、声音制作源文件 | `ArtSource/Environments`、`UI`、`Audio` | 制作端；大型二进制 Git LFS |
 | 发布的角色模型、材质、运行贴图 | `Client/Assets/Art/Characters/<角色代号>/Models`、`Materials`、`Textures` | 发布文件 + Unity 材质；保留 `.meta` |
@@ -21,6 +22,17 @@
 Unity 只打开 `Client/`。日常制作使用主工程的 `ArtSource/` 和 `Client/`，两者应来自同一份检出；工具里的本机绝对路径指向实际使用的工程，不指向临时任务工作树。源文件不放进 `Client/Assets`，避免依赖 Max 的自动导入。
 
 目录按需要增补。既有 `Assets/Locomotion` 灰盒配置继续有效，本次不移动已引用资产；新的动作数据放在 `GameData/Locomotion`。
+
+### 角色原画与四视图
+
+用户于 2026-09-21 确认：角色原画统一在 `ArtSource/Characters/<角色代号>/Design/` 下维护。当前主角使用 `ArtSource/Characters/Player/Design/`；后续新角色沿用同一结构，使用该角色稳定技术代号，不混入 `Player`。
+
+- 修改前先检查目标角色 `Design/` 的实际文件及说明，以用户指定或已确认的图片为基准，不继续引用旧的根目录 `art/references/` 路径。
+- 保留用户整理好的版本目录。原画探索稿可继续用 `v06`、`v12-handdrawn-four-views` 这类版本子目录，新增修改不覆盖旧图；这仅适用于 `Design/`，不改变正式模型、动画等资产的稳定命名规则。
+- 每套四视图放在同一个子目录，明确正面、背面、角色自身左侧和右侧。未修改的视图可以原样复制，但记录哪些视图尚未同步新细节，不能将复制视图视为已完成一致性验收。
+- 同目录保存生成/修改记录，注明源图、参考图、提示词、修改范围和待验收项；新增记录使用工程相对路径，避免依赖某台电脑的绝对路径。
+- 各角色 `Design/README.md` 作为当前版本入口，区分写实设定参考、简化建模参考及用户确认状态。旧版本记录保留为历史，不因目录迁移而批量改写。
+- 图片生成后将交付文件保存到该角色的 `Design/`，不只保留在工具缓存；图片整理或生成不自动代表已提交、推送 Git，或已通过 Tripo/建模验收。
 
 ## 2. 个人短命名与旧格式兼容
 
@@ -119,5 +131,6 @@ Client/Assets/Generated/AnimationClips/Player/Locomotion/Player_Unarmed_Run.anim
 
 | 日期 | 内容 |
 | --- | --- |
+| 2026-09-21 | 用户确认角色原画统一使用 `ArtSource/Characters/<角色代号>/Design/`；Player 已迁入 v06 与 v12 四视图，后续原画迭代和新角色沿用此结构 |
 | 2026-09-20 | 采纳源文件/发布 FBX/生成动画分层；核对两端命名协议；建立共享配置和 LFS；确认 Player、Max 2020、Biped、Root、首轮 Unarmed / 后续 Armed，真实导出层级待首条 FBX 核对 |
 | 2026-09-20 | 用户修订：取消新资产的 Role / Locomotion 长命名，动作集独立、后续按武器类型扩展，不采用泛化 Armed；双端短命名适配由 ASSET-002 实施 |

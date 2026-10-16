@@ -3,6 +3,7 @@
     "com.afauxzhub.animation-pipeline": "file:../../packages/com.afauxzhub.animation-pipeline",
     "com.afauxzhub.character-locomotion": "file:../../packages/com.afauxzhub.character-locomotion",
     "com.afauxzhub.timeline-abilities": "file:../../packages/com.afauxzhub.timeline-abilities",
+    "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#v10.3.0",
     "com.unity.multiplayer.center": "1.0.1",
     "com.unity.modules.accessibility": "1.0.0",
     "com.unity.modules.adaptiveperformance": "1.0.0",

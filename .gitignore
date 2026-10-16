@@ -48,6 +48,10 @@ crashlytics-build.properties
 # Local validation scratch projects
 /.validation-temp/
 
+# Local-only reference assets, generated controllers and scenes using those assets
+/Client/Assets/LocalAnimationLab/
+/Client/Assets/LocalAnimationLab.meta
+
 # DCC scratch / local backups (published FBX and source MAX are tracked via LFS)
 /ArtSource/**/[Aa]utoback/
 /ArtSource/**/[Bb]ackups/
