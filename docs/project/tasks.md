@@ -47,7 +47,7 @@
 
 ## 移动动画实施清单
 
-当前执行：[MOVE-012](tasks/MOVE-012.md) — `In Progress`，三档帧率的 237 步输入矩阵、24 个 Motor 地形用例与旧 81 步回归全部通过；原资产保护通过，正在远端交付。动态锁脚/滑步仍排最后。
+最新完成：[MOVE-012](tasks/MOVE-012.md) — `Done`，三档帧率的 237 步输入矩阵、24 个 Motor 地形用例与旧 81 步回归全部通过；原资产保护通过，代码/文档/允许提交的个人资产已推送 origin/main（b42de71）。早期任务卡“本轮未提交”保留其历史含义，本批统一交付范围见 MOVE-012。下一步为资源填槽/审核和真实衔接验收；动态锁脚/滑步仍排最后。
 
 2026-10-15 用户要求的当前优先支线：在独立测试场景 Play 中完成两套姿态的完整移动衔接，不用 Animator 连线制作，不引入 Motion Matching。架构以 [`animation-state-machine-architecture.md`](../architecture/animation-state-machine-architecture.md) 第 0 节为准。**按下表从上到下实施，每项先机制、再真实资源表现验收；缺项允许进入下一项搭机制，但不能将上一项标 Done。** 动态锁脚/滑步必须最后做。
 
