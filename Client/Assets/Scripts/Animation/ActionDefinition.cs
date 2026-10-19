@@ -57,6 +57,8 @@ namespace Afauxzhub.Project.Animation
         [Range(0, 1)] public float turnScale;
         [Min(0)] public float rootMotionScale = 1;
         public bool applyRootRotation;
+        [Tooltip("Model-specific trajectory for the no-wires player. Legacy Animator path is unchanged.")]
+        public RootMotionSettings rootMotion = new RootMotionSettings();
         [Tooltip("Normalized action phase (0..1) -> normalized clip time (0..1). Does not move gameplay windows.")]
         public AnimationCurve animationTime = AnimationCurve.Linear(0, 0, 1, 1);
         public AnimationCurve footIK = AnimationCurve.Constant(0, 1, 0);

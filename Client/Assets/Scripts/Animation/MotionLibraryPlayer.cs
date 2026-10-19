@@ -14,7 +14,23 @@ namespace Afauxzhub.Project.Animation
         public ClipBlendPlayer Player { get; private set; }
         public string Decision { get; private set; }
         public string Missing { get; private set; }
-        public float Cycle { get; private set; }
+        private double cycleAge, previousCycleStep;
+        public float Cycle => Mathf.Repeat((float)(cycleAge % 1), 1);
+        private RootMotionFrame pendingCompletion, completedFrame;
+        private CombatActionController subscribedCombat;
+        public RootMotionFrame CompletionFrame => completedFrame;
+        public RootMotionFrame RootFrame
+        {
+            get
+            {
+                var result = Player != null ? Player.RootFrame : default;
+                result.localDelta += completedFrame.localDelta; result.yaw += completedFrame.yaw;
+                result.positionWeight = Mathf.Max(result.positionWeight, completedFrame.positionWeight);
+                result.rotationWeight = Mathf.Max(result.rotationWeight, completedFrame.rotationWeight);
+                result.verticalWeight = Mathf.Max(result.verticalWeight, completedFrame.verticalWeight);
+                return result;
+            }
+        }
         public int Revision { get; private set; }
         public MotionFamily Family { get; private set; }
         public MotionSlot SelectedSlot { get; private set; }
@@ -31,6 +47,7 @@ namespace Afauxzhub.Project.Animation
         private bool bridgeFinished;
         private int actionSequence = -1;
         private bool acting;
+        private bool rebaseActionOnNextSample;
         private float lastActionBlendOut;
         private float startAngle;
         private LocomotionPhase previousPhase;
@@ -40,8 +57,22 @@ namespace Afauxzhub.Project.Animation
         public bool Ready => enabled && library != null && driver != null;
         public void Ensure()
         {
+            if (subscribedCombat != driver?.combat)
+            {
+                if (subscribedCombat != null) subscribedCombat.Ended -= ActionEnded;
+                subscribedCombat = driver?.combat;
+                if (subscribedCombat != null) subscribedCombat.Ended += ActionEnded;
+            }
             if (WorkingLibrary == null && library != null) ApplyDraft(library);
-            if (Player == null && driver != null && driver.animator != null) Player = new ClipBlendPlayer(driver.animator);
+            if (Player == null && driver != null && driver.animator != null)
+            { Player = new ClipBlendPlayer(driver.animator); rebaseActionOnNextSample = true; }
+        }
+        private void ActionEnded(ActionDefinition action, bool interrupted)
+        {
+            // Combat owns the end boundary. Consume only the unsampled final fraction, never the
+            // rest of an interrupted animation; gameplay windows/timing are not delayed for animation.
+            if (!interrupted && acting && Player != null)
+                pendingCompletion = Player.CompleteRootSample(action.id, action.NormalizedTime(action.duration));
         }
         public void ApplyDraft(MotionLibrary source)
         {
@@ -57,13 +88,20 @@ namespace Afauxzhub.Project.Animation
             if (WorkingLibrary == null) return;
             Destroy(WorkingLibrary.relaxedMovement); Destroy(WorkingLibrary.readyMovement); Destroy(WorkingLibrary.templates); Destroy(WorkingLibrary); WorkingLibrary = null;
         }
-        private void OnDisable() { Player?.Dispose(); Player = null; requestKey = null; }
+        private void OnDisable()
+        {
+            if (subscribedCombat != null) subscribedCombat.Ended -= ActionEnded;
+            subscribedCombat = null; pendingCompletion = completedFrame = default;
+            Player?.Dispose(); Player = null; requestKey = null;
+        }
         private void OnDestroy() => DestroyWorking();
 
         public void Tick(ActionDefinition action, LocomotionProfile movement, float dt)
         {
             Ensure(); if (Player == null || WorkingLibrary == null) return;
             if (driver.combat != null && driver.combat.suspended) return;
+            completedFrame = pendingCompletion; pendingCompletion = default;
+            if (action == null && !acting && driver.CompletedMotionPhase && !(Player.Key?.EndsWith("/bridge", StringComparison.Ordinal) ?? false)) completedFrame = Player.CompleteOneShots();
             var lib = WorkingLibrary;
             samples.Clear(); missing.Clear();
             if (action != null)
@@ -71,11 +109,17 @@ namespace Afauxzhub.Project.Animation
                 if (!acting || actionSequence != driver.combat.Sequence)
                 { actionSequence = driver.combat.Sequence; requestKey = null; }
                 acting = true; lastActionBlendOut = action.blendOut; Family = MotionFamily.Action;
-                samples.Add(new MotionSample(action.id, action.clip, 1, action.NormalizedTime(driver.combat.TimeInAction)));
+                var root = new RootMotionSettings { enabled = action.movement == MovementAuthority.RootMotion,
+                    rotation = action.applyRootRotation, vertical = action.rootMotion != null && action.rootMotion.vertical,
+                    scale = action.rootMotionScale, track = action.rootMotion?.track };
+                samples.Add(new MotionSample(action.id, action.clip, 1, action.NormalizedTime(driver.combat.TimeInAction))
+                    { rootMotion = root, rootHasStart = true, rootInitialPhase = action.NormalizedTime(rebaseActionOnNextSample ? driver.combat.TimeInAction : 0) });
+                rebaseActionOnNextSample = false;
                 Player.SetTarget("action/" + actionSequence, samples, action.blendIn);
                 Player.Evaluate(dt); Player.CopyPoseSamples(poseSamples); Support = lib.Support(poseSamples);
                 Decision = "Combat permission accepted / " + action.id; Missing = action.clip == null ? "Combat clip missing: " + action.id : ""; return;
             }
+            rebaseActionOnNextSample = false;
             var phase = driver.Phase;
             if (phase != previousPhase)
             {
@@ -100,7 +144,7 @@ namespace Afauxzhub.Project.Animation
                 activeRecipe = lib.Resolve(Family, family, driver.stance, gait, direction, currentMode, mode, out var resolution);
                 currentMode = mode;
                 Decision = resolution; requestTime = 0; bridgeFinished = false;
-                if (activeRecipe != null && !activeRecipe.preserveCyclePhase) Cycle = activeRecipe.targetPhase;
+                if (activeRecipe != null && !activeRecipe.preserveCyclePhase) { cycleAge = activeRecipe.targetPhase; previousCycleStep = 0; }
                 requestKey = key; Family = family;
             }
             requestTime += dt;
@@ -110,11 +154,16 @@ namespace Afauxzhub.Project.Animation
             if (bridge?.clip != null && requestTime < activeRecipe.bridgeSeconds)
             {
                 AddEntry(bridge, 1, requestTime / Mathf.Max(0.01f, activeRecipe.bridgeSeconds), false);
+                if (samples.Count > 0) { var first = samples[0]; first.rootHasStart = true; first.rootInitialPhase = 0; samples[0] = first; }
                 Player.SetTarget(key + "/bridge", samples, blend, activeRecipe.weight);
             }
             else
             {
-                if (bridge != null) { blend = activeRecipe.bridgeOutSeconds; bridgeFinished = true; }
+                if (bridge != null)
+                {
+                    if (!bridgeFinished) completedFrame = Player.CompleteOneShots();
+                    blend = activeRecipe.bridgeOutSeconds; bridgeFinished = true;
+                }
                 if (family == MotionFamily.Move || family == MotionFamily.Strafe || family == MotionFamily.Accelerate || family == MotionFamily.Decelerate)
                 {
                     var dedicated = Find(SelectedSlot, gait, MotionDirection.Any);
@@ -130,8 +179,8 @@ namespace Afauxzhub.Project.Animation
                 {
                     var variation = Find(MotionSlot.IdleVariation, MotionGait.Any, MotionDirection.Any);
                     bool vary = lib.idleVariation && variation?.clip != null && requestTime % (lib.idleVariationInterval + variation.CycleSeconds) > lib.idleVariationInterval;
-                    if (vary != idleVariationActive) { Cycle = 0; idleVariationActive = vary; }
-                    Add(vary ? MotionSlot.IdleVariation : MotionSlot.Idle, MotionGait.Any, MotionDirection.Any, 1, Cycle, true);
+                    if (vary != idleVariationActive) { cycleAge = 0; previousCycleStep = 0; idleVariationActive = vary; }
+                    Add(vary ? MotionSlot.IdleVariation : MotionSlot.Idle, MotionGait.Any, MotionDirection.Any, 1, cycleAge, true);
                     AdvanceCycle(dt);
                 }
                 else
@@ -139,7 +188,7 @@ namespace Afauxzhub.Project.Animation
                     bool loop = family == MotionFamily.Air;
                     float phaseTime = driver.PhaseNormalized;
                     if (activeRecipe != null && !activeRecipe.preserveCyclePhase) phaseTime = Mathf.Lerp(activeRecipe.targetPhase, 1, phaseTime);
-                    Add(SelectedSlot, gait, family == MotionFamily.Start ? direction : MotionDirection.Any, 1, loop ? Cycle : phaseTime, loop);
+                    Add(SelectedSlot, gait, family == MotionFamily.Start ? direction : MotionDirection.Any, 1, loop ? cycleAge : phaseTime, loop);
                     if (loop) AdvanceCycle(dt);
                 }
                 Player.SetTarget(key + (bridgeFinished ? "/after-bridge" : "") + (family == MotionFamily.Idle ? idleVariationActive ? "/variation" : "/idle" : ""), samples, blend, activeRecipe?.weight);
@@ -166,7 +215,8 @@ namespace Afauxzhub.Project.Animation
             float scale = 0;
             foreach (var s in samples) if (s.clip != null) scale += (WorkingLibrary.ById(s.id)?.PlaybackScale(driver.Speed, WorkingLibrary.minimumPlaybackScale, WorkingLibrary.maximumPlaybackScale) ?? 1) * s.weight;
             PlaybackScale = weight > 0 ? scale / weight : 1;
-            Cycle = Mathf.Repeat(Cycle + dt * PlaybackScale / Mathf.Max(0.1f, duration / Mathf.Max(0.001f, weight)), 1);
+            previousCycleStep = dt * PlaybackScale / Mathf.Max(0.1f, duration / Mathf.Max(0.001f, weight));
+            cycleAge += previousCycleStep;
         }
         private void AddStride(MotionGait gait, float weight, LocomotionProfile p)
         {
@@ -177,22 +227,22 @@ namespace Afauxzhub.Project.Animation
                 float angle = Mathf.Repeat(Mathf.Atan2(v.x, v.y) * Mathf.Rad2Deg + 360, 360) / 45;
                 int low = Mathf.FloorToInt(angle) % 8, high = (low + 1) % 8;
                 var slots = new[] { MotionSlot.StrafeForward, MotionSlot.StrafeForwardRight, MotionSlot.StrafeRight, MotionSlot.StrafeBackRight, MotionSlot.StrafeBack, MotionSlot.StrafeBackLeft, MotionSlot.StrafeLeft, MotionSlot.StrafeForwardLeft };
-                Add(slots[low], gait, MotionDirection.Any, weight * (1 - (angle - Mathf.Floor(angle))), Cycle, true);
-                Add(slots[high], gait, MotionDirection.Any, weight * (angle - Mathf.Floor(angle)), Cycle, true);
+                Add(slots[low], gait, MotionDirection.Any, weight * (1 - (angle - Mathf.Floor(angle))), cycleAge, true);
+                Add(slots[high], gait, MotionDirection.Any, weight * (angle - Mathf.Floor(angle)), cycleAge, true);
             }
-            else if (gait == MotionGait.Walk) Add(MotionSlot.Walk, gait, MotionDirection.Any, weight, Cycle, true);
+            else if (gait == MotionGait.Walk) Add(MotionSlot.Walk, gait, MotionDirection.Any, weight, cycleAge, true);
             else
             {
                 float turn = Mathf.Clamp(driver.TurnBlend, -1, 1), t = Mathf.Abs(turn);
                 MotionSlot straight = gait == MotionGait.Sprint ? MotionSlot.Sprint : MotionSlot.Run;
                 MotionSlot arc = gait == MotionGait.Sprint ? turn < 0 ? MotionSlot.SprintLeft : MotionSlot.SprintRight : turn < 0 ? MotionSlot.ArcLeft : MotionSlot.ArcRight;
                 if (gait == MotionGait.Sprint || t <= 0.5f)
-                { float a = gait == MotionGait.Sprint ? t : t * 2; Add(straight, gait, MotionDirection.Any, weight * (1 - a), Cycle, true); Add(arc, gait, MotionDirection.Any, weight * a, Cycle, true); }
+                { float a = gait == MotionGait.Sprint ? t : t * 2; Add(straight, gait, MotionDirection.Any, weight * (1 - a), cycleAge, true); Add(arc, gait, MotionDirection.Any, weight * a, cycleAge, true); }
                 else
-                { Add(arc, gait, MotionDirection.Any, weight * (2 - t * 2), Cycle, true); Add(turn < 0 ? MotionSlot.ArcSharpLeft : MotionSlot.ArcSharpRight, gait, MotionDirection.Any, weight * (t * 2 - 1), Cycle, true); }
+                { Add(arc, gait, MotionDirection.Any, weight * (2 - t * 2), cycleAge, true); Add(turn < 0 ? MotionSlot.ArcSharpLeft : MotionSlot.ArcSharpRight, gait, MotionDirection.Any, weight * (t * 2 - 1), cycleAge, true); }
             }
         }
-        private void Add(MotionSlot slot, MotionGait gait, MotionDirection direction, float weight, float time, bool loop)
+        private void Add(MotionSlot slot, MotionGait gait, MotionDirection direction, float weight, double time, bool loop)
         {
             if (weight < 0.0001f) return;
             var entry = Find(slot, gait, direction);
@@ -207,9 +257,11 @@ namespace Afauxzhub.Project.Animation
             }
             if (entry != null) AddEntry(entry, weight, time, loop);
         }
-        private void AddEntry(MotionEntry entry, float weight, float time, bool loop)
+        private void AddEntry(MotionEntry entry, float weight, double time, bool loop)
         {
-            samples.Add(entry.Sample(time, weight, loop));
+            var sample = entry.Sample(time, weight, loop);
+            if (loop) { sample.rootHasStart = true; sample.rootInitialPhase = sample.rootPhase - previousCycleStep; }
+            samples.Add(sample);
             if (entry.review == MotionReview.Placeholder) missing.Add(entry.slot + " uses explicitly marked placeholder");
         }
         private MotionEntry Find(MotionSlot slot, MotionGait gait, MotionDirection direction)

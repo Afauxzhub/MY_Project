@@ -105,8 +105,9 @@ namespace Afauxzhub.Project.Editor.Animation
             if (errors.Length > 0) { message = "不能保存非法配置：" + errors[0]; return false; }
             try
             {
+                RootMotionBaker.RequireCurrent(draft);
                 MotionAuthoringTools.GuardDestination(AssetDatabase.GetAssetPath(source), draft.model, draft.templates);
-                foreach (var entry in draft.entries) if (entry?.clip != null) AnimationBindingTools.RequireLocalDestination(AssetDatabase.GetAssetPath(source), entry.clip);
+                foreach (var entry in draft.entries) if (entry?.clip != null) AnimationBindingTools.RequireLocalDestination(AssetDatabase.GetAssetPath(source), entry.clip, entry.rootMotion?.track?.model);
                 var relaxed = source.relaxedMovement; var ready = source.readyMovement;
                 Undo.RecordObject(source, "Save motion library draft");
                 if (relaxed != null) { Undo.RecordObject(relaxed, "Save relaxed tuning"); string name = relaxed.name; EditorUtility.CopySerialized(draft.relaxedMovement, relaxed); relaxed.name = name; relaxed.hideFlags = HideFlags.None; EditorUtility.SetDirty(relaxed); }
@@ -125,6 +126,7 @@ namespace Afauxzhub.Project.Editor.Animation
             var players = Object.FindObjectsByType<MotionLibraryPlayer>(FindObjectsSortMode.None).Where(p => p.library == source).ToArray();
             if (!Application.isPlaying || players.Length != 1) { message = "Play 中需要恰好一个使用所选库的角色。"; return false; }
             if (draft.Validate().Any()) { message = "草稿有配置错误；请先看覆盖/诊断。"; return false; }
+            try { RootMotionBaker.RequireCurrent(draft); } catch (Exception error) { message = error.Message; return false; }
             players[0].ApplyDraft(draft); message = "已应用到本次 Play 副本，尚未写源资产。"; return true;
         }
         private void OnGUI()
@@ -171,13 +173,31 @@ namespace Afauxzhub.Project.Editor.Animation
             if (draft.entries.Count > 0)
             {
                 var property = so.FindProperty("entries").GetArrayElementAtIndex(selectedEntry);
-                foreach (string field in new[] { "stance", "mode", "slot", "gait", "direction", "clip", "enabled", "speed", "inPoint", "outPoint", "phaseOffset", "stageSeconds", "minimumSpeed", "maximumSpeed", "minimumAngle", "maximumAngle", "referenceSpeed", "matchPlaybackToSpeed", "contactAuthored", "leftContact", "rightContact", "matchName", "optional", "note" }) EditorGUILayout.PropertyField(property.FindPropertyRelative(field), true);
+                foreach (string field in new[] { "stance", "mode", "slot", "gait", "direction", "clip", "enabled", "rootMotion", "speed", "inPoint", "outPoint", "phaseOffset", "stageSeconds", "minimumSpeed", "maximumSpeed", "minimumAngle", "maximumAngle", "referenceSpeed", "matchPlaybackToSpeed", "contactAuthored", "leftContact", "rightContact", "matchName", "optional", "note" }) EditorGUILayout.PropertyField(property.FindPropertyRelative(field), true);
                 var entry = draft.entries[selectedEntry];
                 EditorGUILayout.LabelField("稳定 ID", entry.id, EditorStyles.miniLabel);
                 if (entry.clip != null && GUILayout.Button("检查模型绑定覆盖")) message = AnimationBindingTools.Coverage(draft.model, entry.clip);
             }
             so.ApplyModifiedProperties();
-            if (draft.entries.Count > 0) DrawEntryReview(draft.entries[selectedEntry]);
+            if (draft.entries.Count > 0)
+            {
+                var entry = draft.entries[selectedEntry];
+                DrawEntryReview(entry);
+                EditorGUILayout.HelpBox(RootMotionBaker.Status(entry.rootMotion, draft.model, entry.clip), MessageType.Info);
+                RootMotionBaker.DrawTrajectory(entry.rootMotion?.track, entry.inPoint);
+                if (GUILayout.Button("提取所选动画根轨迹（仅草稿）"))
+                {
+                    try
+                    {
+                        var track = RootMotionBaker.Bake(draft.model, entry.clip);
+                        Undo.RecordObject(draft, "Extract root trajectory");
+                        if (entry.rootMotion == null) entry.rootMotion = new RootMotionSettings();
+                        entry.rootMotion.track = track; entry.rootMotion.enabled = true;
+                        message = "已提取根轨迹；原 Clip 未修改。可 Undo，应用到 Play 或保存差异。";
+                    }
+                    catch (Exception error) { message = error.Message; }
+                }
+            }
             using (new EditorGUILayout.HorizontalScope())
             {
                 if (GUILayout.Button("新增槽 / 变体")) { Undo.RecordObject(draft, "Add motion entry"); draft.entries.Add(new MotionEntry { stance = stance, enabled = false, note = "Set selectors, assign a clip and enable. Only one enabled entry per selector." }); selectedEntry = draft.entries.Count - 1; }
@@ -237,6 +257,9 @@ namespace Afauxzhub.Project.Editor.Animation
                 EditorGUILayout.LabelField("速度", active.driver.Speed.ToString("F2") + " m/s");
                 EditorGUILayout.LabelField("期望 / Motor 实际", active.driver.TargetSpeed.ToString("F2") + " / " + new Vector2(active.driver.motor.Velocity.x, active.driver.motor.Velocity.z).magnitude.ToString("F2") + " m/s");
                 EditorGUILayout.LabelField("位移所有者", active.driver.MotionOwner);
+                var rootFrame = active.RootFrame;
+                EditorGUILayout.LabelField("根位移请求 / 转角", rootFrame.localDelta.ToString("F3") + " / " + rootFrame.yaw.ToString("F2"));
+                EditorGUILayout.LabelField("根权重 XZ / Y / 转向", $"{rootFrame.positionWeight:F2} / {rootFrame.verticalWeight:F2} / {rootFrame.rotationWeight:F2}");
                 EditorGUILayout.LabelField("模式 / 播放倍率", active.driver.Mode + " / " + active.PlaybackScale.ToString("F2"));
                 EditorGUILayout.HelpBox(active.Support.ToString(), MessageType.None);
                 EditorGUILayout.HelpBox(active.Decision ?? "", MessageType.None);

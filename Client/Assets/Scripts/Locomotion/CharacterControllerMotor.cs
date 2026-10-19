@@ -32,11 +32,12 @@ namespace Afauxzhub.Project.Locomotion
             return true;
         }
 
-        public void ApplyDisplacement(Vector3 horizontalDelta, Quaternion facing, float deltaTime)
+        public void ApplyDisplacement(Vector3 horizontalDelta, Quaternion facing, float deltaTime, float authoredVerticalWeight = 0)
         {
             if (characterController == null || deltaTime <= 0 || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime)) return;
             transform.rotation = facing;
-            bool canSnap = characterController.isGrounded && verticalSpeed <= 0;
+            authoredVerticalWeight = Mathf.Clamp01(authoredVerticalWeight);
+            bool canSnap = characterController.isGrounded && verticalSpeed <= 0 && authoredVerticalWeight <= 0;
             float verticalDelta;
             if (characterController.isGrounded && verticalSpeed < 0)
             { verticalSpeed = -groundedPull; verticalDelta = verticalSpeed * deltaTime; }
@@ -47,7 +48,9 @@ namespace Afauxzhub.Project.Locomotion
                 verticalSpeed -= gravity * deltaTime;
             }
             Vector3 before = transform.position;
-            LastCollision = characterController.Move(horizontalDelta + Vector3.up * verticalDelta);
+            LastCollision = characterController.Move(horizontalDelta + Vector3.up * (verticalDelta * (1 - authoredVerticalWeight)));
+            // Returning to physics inherits collision-resolved vertical motion, never a hidden gravity debt.
+            if (authoredVerticalWeight > 0) verticalSpeed = (transform.position.y - before.y) / deltaTime;
             if (canSnap && !characterController.isGrounded && groundSnapDistance > 0)
             {
                 // Sweep the lower capsule, not a point ray: handles slope contact without

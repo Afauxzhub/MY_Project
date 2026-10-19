@@ -7,7 +7,7 @@
 | Unity 基线 | Unity 6000.3.24f1（Unity 6.3 LTS） |
 | 任务索引 | [`tasks.md`](tasks.md) |
 | Agent 工作方式 | [`agent-workflow.md`](agent-workflow.md) |
-| 最近更新 | 2026-10-16 |
+| 最近更新 | 2026-10-19 |
 
 ## 项目目标
 
@@ -33,6 +33,8 @@
 Ky Kiske 1.8 米 Biped 混合绑定试版已生成，Max 构建、权重保形、关键帧保存重开和专用动画 FBX 回读已有实测证据；入口及待验收项见 [`RIG-002`](tasks/RIG-002.md)。
 
 ## 当前边界
+
+2026-10-19 [MOVE-013](tasks/MOVE-013.md) 的新播放器 Root Motion 代码与机制验收通过：原生轨迹提取、裁剪/循环/混合、正常收尾/打断、Motor 碰撞、动作垂直位移和工作台入口已接通；三档专项与现有程序移动回归通过。当前进行远端交付收尾。真实资源表现、第二套骨架、正式 Max 发布及动态锁脚仍单独验收，原本地库未自动启用根运动。
 
 2026-10-16 追加 [MOVE-012](tasks/MOVE-012.md) 已 Done：237 步连续输入 + 24 个 Motor 地形用例已在 30/60/120 目标下通过，修复坡面误离地、落边动量/离地权限和连续中断残留节点；不等待新资产。旧回归及原资产保护也已通过，代码与允许提交内容已推送 origin/main（b42de71）。原工作台界面沿用 MOVE-011 的验收结果，真实资源、第二套真实骨架、Root Motion、物理设备/手感及动态锁脚仍单独验收。
 
@@ -71,6 +73,6 @@ Ky Kiske 1.8 米 Biped 混合绑定试版已生成，Max 构建、权重保形�
 
 ## 下一项工作
 
-MOVE-011 已关闭程序位移制作闭环。继续按 [`MOVE-003`](tasks/MOVE-003.md) 至 [`MOVE-009`](tasks/MOVE-009.md) 的索引顺序关闭剩余缺口：现有资源可先扩展坡面/落边、快速镜头及完整输入串联机制；真实 Walk、战斗 Sprint 等到位后再验循环/步频和美术衔接。资源审核矩阵和代表性配方编辑操作已通过，不再重复作为未落地功能。动态锁脚/滑步最后处理；当前阶段不占用 Max，也不替代下述个人资产制作与 ANIM-001 发布验收。
+MOVE-011 已关闭程序位移制作闭环，MOVE-012 已关闭坡面/落边、快速镜头和完整输入机制矩阵。MOVE-013 接通无连线 Root Motion 链路，证据与剩余边界见任务卡。继续按 [`MOVE-003`](tasks/MOVE-003.md) 至 [`MOVE-009`](tasks/MOVE-009.md) 的索引顺序关闭资源/表现缺口：真实 Walk、战斗 Sprint 等到位后再验循环/步频、根步幅与美术衔接；第二套真实骨架和实际操作手感仍待验。资源审核矩阵和代表性配方编辑操作已通过，不再重复作为未落地功能。动态锁脚/滑步最后处理；当前阶段不占用 Max，也不替代下述个人资产制作与 ANIM-001 发布验收。
 
-先试用 RIG-002 绑定并完成控制与变形验收，再制作首条带 `Root` 轨迹的 `Player_Unarmed_Run.max`。随后按 ANIM-001 适配并验证 Max → FBX → Unity `.anim` 的发布闭环，补齐 ASSET-002 真实资产验收，再推进动画驱动移动。角色登记见 [`../production/characters/Player.md`](../production/characters/Player.md)。现有 MOVE-001 仅是程序移动灰盒，不代表最终动作表现。
+先试用 RIG-002 绑定并完成控制与变形验收，再制作首条带 `Root` 轨迹的 `Player_Unarmed_Run.max`。随后按 ANIM-001 适配并验证 Max → FBX → Unity `.anim` 的发布闭环，补齐 ASSET-002 真实资产验收，并通过工作台提取轨迹接入现有 Root Motion 链路。角色登记见 [`../production/characters/Player.md`](../production/characters/Player.md)。现有代码机制通过不代表正式资产或最终动作表现。

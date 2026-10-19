@@ -94,7 +94,24 @@ namespace Afauxzhub.Project.Editor.Animation
                 EditorGUILayout.Space(); EditorGUILayout.LabelField("Action / phase / pose mapping", EditorStyles.boldLabel);
                 foreach (string name in new[] { "id", "kind", "clip", "animatorState", "animatorAlternateState", "animationTimeParameter", "alternateTimeParameter", "duration", "activeStart", "recoveryStart", "blendIn", "blendOut", "hold", "onRelease", "movement", "inputMovementScale", "turnScale", "rootMotionScale", "applyRootRotation", "animationTime", "footIK", "nextLight", "nextHeavy", "hitShapes", "notes", "ruleIds" })
                     EditorGUILayout.PropertyField(so.FindProperty(name), true);
+                EditorGUILayout.PropertyField(so.FindProperty("rootMotion").FindPropertyRelative("vertical"), new GUIContent("动画接管垂直位移"));
                 if (EditorGUI.EndChangeCheck()) { so.ApplyModifiedProperties(); preview.InvalidateEffects(); } else so.ApplyModifiedProperties();
+                EditorGUILayout.HelpBox("新播放器：Movement=RootMotion 控制启用，Root Motion Scale / Apply Root Rotation 控制缩放与旋转；Root Motion 内只使用轨迹与 Vertical。重力跳跃仍由 Motor 负责。", MessageType.Info);
+                EditorGUILayout.HelpBox(RootMotionBaker.Status(new RootMotionSettings { enabled = action.movement == MovementAuthority.RootMotion, track = action.rootMotion?.track }, model, action.clip), MessageType.Info);
+                RootMotionBaker.DrawTrajectory(action.rootMotion?.track, action.NormalizedTime(time));
+                if (GUILayout.Button("提取动作根轨迹（不改源动画）"))
+                {
+                    try
+                    {
+                        AnimationBindingTools.RequireLocalDestination(AssetDatabase.GetAssetPath(action), model, action.clip);
+                        var track = RootMotionBaker.Bake(model, action.clip);
+                        Undo.RecordObject(action, "Extract action root trajectory");
+                        if (action.rootMotion == null) action.rootMotion = new RootMotionSettings();
+                        action.rootMotion.track = track; action.rootMotion.enabled = true;
+                        EditorUtility.SetDirty(action);
+                    }
+                    catch (Exception error) { Debug.LogWarning(error.Message); }
+                }
             }
             foreach (string issue in action.Validate()) EditorGUILayout.HelpBox(issue, MessageType.Warning);
             EditorGUILayout.HelpBox("Orange volumes only visualize authored hit shapes. Actual collision results, damage, resource payment and counter confirmation belong to the combat adapter. Script-driven effects, sub-emitter chains, SFX and camera motion need Play Mode acceptance.", MessageType.Info);

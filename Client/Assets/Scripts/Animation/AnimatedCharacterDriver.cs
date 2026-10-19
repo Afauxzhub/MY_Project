@@ -43,6 +43,8 @@ namespace Afauxzhub.Project.Animation
         { worldDirection.y = 0; if (worldDirection.sqrMagnitude > 0.001f) { requestedFacing = worldDirection.normalized; facingRequested = true; } }
         public void ClearFacingRequest() => facingRequested = false;
         public float PhaseNormalized { get; private set; }
+        public bool CompletedMotionPhase { get; private set; }
+        private float lastRootRotationWeight;
         public string LastConfigurationError { get; private set; }
         private readonly LocomotionDynamics dynamics = new LocomotionDynamics();
         private readonly HeadingSolver heading = new HeadingSolver();
@@ -70,6 +72,7 @@ namespace Afauxzhub.Project.Animation
             intendedRotation = transform.rotation;
             intendedVelocity = airVelocity = Vector3.zero;
             jumpAge = -1;
+            lastRootRotationWeight = 0; CompletedMotionPhase = false;
             previousStance = stance;
             Subscribe();
         }
@@ -86,7 +89,7 @@ namespace Afauxzhub.Project.Animation
             if (!UsesMotionLibrary || motor == null || combat != null && (combat.suspended || combat.Current != null)) return false;
             motionPlayer.Ensure();
             if (!motor.TryJump(motionPlayer.WorkingLibrary.jumpHeight)) return false;
-            jumpAge = 0; airVelocity = intendedVelocity;
+            jumpAge = 0; airVelocity = motor.Velocity; airVelocity.y = 0;
             if (combat != null) combat.LocomotionInputBlocked = true;
             return true;
         }
@@ -108,6 +111,7 @@ namespace Afauxzhub.Project.Animation
 
         private void Update()
         {
+            CompletedMotionPhase = false;
             Subscribe();
             if (UsesMotionLibrary) motionPlayer.Ensure();
             if (profile == null || motor == null || animator == null || profile.Set(stance).movement == null)
@@ -203,7 +207,11 @@ namespace Afauxzhub.Project.Animation
             float previousLength = MotionLibrary.IsInPlace(previousPhase) ? Mathf.Abs(dynamics.LatchedTurnAngle) >= p.pivotAngle ? idlePivotLength : idleLength
                 : Mathf.Abs(dynamics.LatchedTurnAngle) >= p.pivotAngle ? pivotLength : turnLength;
             bool completedTurn = endedTurn && previousTime + dt >= previousLength;
-            intendedRotation = completedTurn ? Quaternion.Euler(0, latchedYaw, 0) : transform.rotation;
+            CompletedMotionPhase = previousPhase != dynamics.Phase && !acting && motor.IsGrounded && (completedTurn
+                || previousPhase == LocomotionPhase.Start && previousTime + dt >= startLength
+                || previousPhase == LocomotionPhase.Stop && previousTime + dt >= stopLength
+                || previousPhase == LocomotionPhase.Land && previousTime + dt >= Length(LocomotionPhase.Land, p.landDuration));
+            intendedRotation = completedTurn && lastRootRotationWeight <= 0 ? Quaternion.Euler(0, latchedYaw, 0) : transform.rotation;
             if (endedTurn) heading.Reset(intendedRotation * Vector3.forward);
             float visualSpeed = Speed;
             if ((dynamics.Turning && !Targeting || dynamics.TurningInPlace) && !acting)
@@ -298,10 +306,31 @@ namespace Afauxzhub.Project.Animation
                 delta.y = 0;
                 Quaternion rotation = root && action != null && action.applyRootRotation ? transform.rotation * rootRotation : intendedRotation;
                 MotionOwner = frozen ? "Suspended" : root ? "Motor / Animator delta" : "Motor / procedural";
+                float verticalWeight = 0;
+                if (UsesMotionLibrary && !frozen)
+                {
+                    var frame = motionPlayer.RootFrame;
+                    lastRootRotationWeight = frame.rotationWeight;
+                    bool ballistic = action == null && (jumpAge >= 0 || !motor.IsGrounded);
+                    if (ballistic && motionPlayer.CompletionFrame.positionWeight > 0) { frame = motionPlayer.CompletionFrame; ballistic = false; }
+                    if (!ballistic)
+                    {
+                        delta = intendedVelocity * Time.deltaTime * (1 - Mathf.Clamp01(frame.positionWeight))
+                            + animator.transform.rotation * frame.localDelta;
+                        if (frame.verticalWeight <= 0) delta.y = 0;
+                        verticalWeight = Mathf.Clamp01(frame.verticalWeight);
+                        float proceduralYaw = Mathf.DeltaAngle(transform.eulerAngles.y, intendedRotation.eulerAngles.y);
+                        rotation = transform.rotation * Quaternion.Euler(0, frame.yaw + proceduralYaw * (1 - Mathf.Clamp01(frame.rotationWeight)), 0);
+                        if (frame.positionWeight > 0) MotionOwner = "Motor / extracted Root Motion";
+                    }
+                    if (action != null && action.movement == MovementAuthority.Stationary) { delta = Vector3.zero; verticalWeight = 0; }
+                    if (!string.IsNullOrEmpty(frame.problem)) MotionOwner += " / " + frame.problem;
+                }
                 if (!frozen)
                 {
                     bool groundedBefore = motor.IsGrounded;
-                    motor.ApplyDisplacement(delta, rotation, Time.deltaTime);
+                    motor.ApplyDisplacement(delta, rotation, Time.deltaTime, verticalWeight);
+                    if (lastRootRotationWeight > 0) heading.Reset(motor.Facing);
                     // Walking off a ledge inherits collision-resolved momentum, not the last jump's velocity.
                     if (groundedBefore && motor.VerticalSpeed <= 0)
                     { airVelocity = motor.Velocity; airVelocity.y = 0; }

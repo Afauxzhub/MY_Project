@@ -22,6 +22,7 @@ namespace Afauxzhub.Project.Animation
         public MotionMode mode;
         public AnimationClip clip;
         public bool enabled = true;
+        public RootMotionSettings rootMotion = new RootMotionSettings();
         [Min(0.01f)] public float speed = 1;
         [Range(0, 1)] public float inPoint;
         [Range(0, 1)] public float outPoint = 1;
@@ -50,8 +51,9 @@ namespace Afauxzhub.Project.Animation
         public float PlaybackScale(float actualSpeed, float minimum, float maximum) => matchPlaybackToSpeed && referenceSpeed > 0.001f
             ? Mathf.Clamp(actualSpeed / referenceSpeed, minimum, maximum) : 1;
         // Cycles are shared across gait/direction blends. Speed changes the cycle rate, not its wrapped phase.
-        public MotionSample Sample(float phase, float weight, bool loop) => new MotionSample(id, clip, weight,
-            Mathf.Lerp(inPoint, outPoint, loop ? Mathf.Repeat(phase + phaseOffset, 1) : Mathf.Clamp01(phase * speed)));
+        public MotionSample Sample(double phase, float weight, bool loop) => new MotionSample(id, clip, weight,
+            Mathf.Lerp(inPoint, outPoint, loop ? Mathf.Repeat((float)(phase % 1) + phaseOffset, 1) : Mathf.Clamp01((float)(phase * speed))))
+            { rootMotion = rootMotion, rootPhase = loop ? phase + phaseOffset : Mathf.Clamp01((float)(phase * speed)), rootStart = inPoint, rootEnd = outPoint, rootLoop = loop, rootTerminalPhase = Mathf.Clamp01(speed) };
     }
 
     [Serializable]
@@ -192,6 +194,8 @@ namespace Afauxzhub.Project.Animation
                     || !Finite(entry.stageSeconds) || entry.stageSeconds < 0 || !Finite(entry.referenceSpeed) || entry.referenceSpeed < 0
                     || entry.matchPlaybackToSpeed && entry.referenceSpeed <= 0) yield return "Invalid applicability/speed metadata: " + key;
                 if (entry.contactAuthored && (!ValidContact(entry.leftContact) || !ValidContact(entry.rightContact))) yield return "Invalid contact curves: " + key;
+                if (entry.rootMotion != null && !entry.rootMotion.Valid(entry.clip)) yield return "Missing/invalid Root Motion track: " + key;
+                if (entry.rootMotion != null && entry.rootMotion.enabled && entry.rootMotion.vertical) yield return "Locomotion Y belongs to gravity/jump; use an ActionDefinition for authored vertical motion: " + key;
             }
             var allRecipes = new List<MotionRecipe>(overrides);
             if (templates != null) allRecipes.AddRange(templates.recipes);
