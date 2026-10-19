@@ -14,7 +14,7 @@ namespace Afauxzhub.Project.Animation
         public ClipBlendPlayer Player { get; private set; }
         public string Decision { get; private set; }
         public string Missing { get; private set; }
-        private double cycleAge, previousCycleStep;
+        private double cycleAge;
         public float Cycle => Mathf.Repeat((float)(cycleAge % 1), 1);
         private RootMotionFrame pendingCompletion, completedFrame;
         private CombatActionController subscribedCombat;
@@ -86,7 +86,8 @@ namespace Afauxzhub.Project.Animation
         private void DestroyWorking()
         {
             if (WorkingLibrary == null) return;
-            Destroy(WorkingLibrary.relaxedMovement); Destroy(WorkingLibrary.readyMovement); Destroy(WorkingLibrary.templates); Destroy(WorkingLibrary); WorkingLibrary = null;
+            void Release(UnityEngine.Object value) { if (Application.isPlaying) Destroy(value); else DestroyImmediate(value); }
+            Release(WorkingLibrary.relaxedMovement); Release(WorkingLibrary.readyMovement); Release(WorkingLibrary.templates); Release(WorkingLibrary); WorkingLibrary = null;
         }
         private void OnDisable()
         {
@@ -144,7 +145,7 @@ namespace Afauxzhub.Project.Animation
                 activeRecipe = lib.Resolve(Family, family, driver.stance, gait, direction, currentMode, mode, out var resolution);
                 currentMode = mode;
                 Decision = resolution; requestTime = 0; bridgeFinished = false;
-                if (activeRecipe != null && !activeRecipe.preserveCyclePhase) { cycleAge = activeRecipe.targetPhase; previousCycleStep = 0; }
+                if (activeRecipe != null && !activeRecipe.preserveCyclePhase) cycleAge = activeRecipe.targetPhase;
                 requestKey = key; Family = family;
             }
             requestTime += dt;
@@ -179,7 +180,7 @@ namespace Afauxzhub.Project.Animation
                 {
                     var variation = Find(MotionSlot.IdleVariation, MotionGait.Any, MotionDirection.Any);
                     bool vary = lib.idleVariation && variation?.clip != null && requestTime % (lib.idleVariationInterval + variation.CycleSeconds) > lib.idleVariationInterval;
-                    if (vary != idleVariationActive) { cycleAge = 0; previousCycleStep = 0; idleVariationActive = vary; }
+                    if (vary != idleVariationActive) { cycleAge = 0; idleVariationActive = vary; }
                     Add(vary ? MotionSlot.IdleVariation : MotionSlot.Idle, MotionGait.Any, MotionDirection.Any, 1, cycleAge, true);
                     AdvanceCycle(dt);
                 }
@@ -215,8 +216,20 @@ namespace Afauxzhub.Project.Animation
             float scale = 0;
             foreach (var s in samples) if (s.clip != null) scale += (WorkingLibrary.ById(s.id)?.PlaybackScale(driver.Speed, WorkingLibrary.minimumPlaybackScale, WorkingLibrary.maximumPlaybackScale) ?? 1) * s.weight;
             PlaybackScale = weight > 0 ? scale / weight : 1;
-            previousCycleStep = dt * PlaybackScale / Mathf.Max(0.1f, duration / Mathf.Max(0.001f, weight));
-            cycleAge += previousCycleStep;
+            double step = dt * PlaybackScale / Mathf.Max(0.1f, duration / Mathf.Max(0.001f, weight));
+            cycleAge += step;
+            // Select weights at the current phase, then sample the END of this frame's interval.
+            // Sampling before advancing delays root travel by a frame: after a hitch, a tiny frame
+            // would receive the previous long frame's displacement and an invalid Motor velocity.
+            for (int i = 0; i < samples.Count; i++)
+            {
+                var sample = samples[i];
+                if (!sample.rootLoop) continue;
+                sample.rootHasStart = true; sample.rootInitialPhase = sample.rootPhase;
+                sample.rootPhase += step;
+                sample.normalizedTime = Mathf.Lerp(sample.rootStart, sample.rootEnd, Mathf.Repeat((float)(sample.rootPhase % 1), 1));
+                samples[i] = sample;
+            }
         }
         private void AddStride(MotionGait gait, float weight, LocomotionProfile p)
         {
@@ -246,6 +259,7 @@ namespace Afauxzhub.Project.Animation
         {
             if (weight < 0.0001f) return;
             var entry = Find(slot, gait, direction);
+            bool poseOnlyFallback = false;
             if (entry == null)
             {
                 if (slot == MotionSlot.Start && direction != MotionDirection.Forward)
@@ -253,14 +267,22 @@ namespace Afauxzhub.Project.Animation
                 if (entry == null && (slot == MotionSlot.Walk || slot == MotionSlot.Sprint || slot >= MotionSlot.ArcLeft && slot <= MotionSlot.SprintRight))
                     entry = Find(MotionSlot.Run, MotionGait.Any, MotionDirection.Any);
                 if (entry == null) entry = Find(MotionSlot.Idle, MotionGait.Any, MotionDirection.Any);
+                // Missing directional locomotion may borrow a pose, not an unrelated trajectory.
+                // In particular a rooted Idle must not consume movement ownership for missing Strafe.
+                poseOnlyFallback = entry != null && (entry.slot == MotionSlot.Idle
+                    || slot == MotionSlot.Start && direction != MotionDirection.Forward);
                 missing.Add(slot + (direction != MotionDirection.Any ? "/" + direction : "") + " → " + (entry != null ? entry.slot.ToString() : "NO CLIP"));
             }
-            if (entry != null) AddEntry(entry, weight, time, loop);
+            if (entry != null)
+            {
+                AddEntry(entry, weight, time, loop);
+                if (poseOnlyFallback) { var sample = samples[samples.Count - 1]; sample.rootMotion = null; samples[samples.Count - 1] = sample; }
+            }
         }
         private void AddEntry(MotionEntry entry, float weight, double time, bool loop)
         {
             var sample = entry.Sample(time, weight, loop);
-            if (loop) { sample.rootHasStart = true; sample.rootInitialPhase = sample.rootPhase - previousCycleStep; }
+            if (loop) { sample.rootHasStart = true; sample.rootInitialPhase = sample.rootPhase; }
             samples.Add(sample);
             if (entry.review == MotionReview.Placeholder) missing.Add(entry.slot + " uses explicitly marked placeholder");
         }

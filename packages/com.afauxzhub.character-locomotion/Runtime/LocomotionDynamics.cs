@@ -33,6 +33,9 @@ namespace Afauxzhub.CharacterLocomotion
             if (!grounded) { Set(LocomotionPhase.Fall); groundedLast = false; return; }
             if (!groundedLast) { groundedLast = true; Set(LocomotionPhase.Land); return; }
             if (Phase == LocomotionPhase.Land && PhaseTime < landDuration) return;
+            // A stationary landing (including initial ground contact) is not a running stop.
+            // Playing Stop here would introduce its authored root travel with no movement intent.
+            if (Phase == LocomotionPhase.Land && !moving && Speed <= 0.01f) { Set(LocomotionPhase.Idle); return; }
             if (TurningInPlace)
             {
                 float length = Math.Abs(LatchedTurnAngle) >= pivotAngle ? idlePivotDuration : idleTurnDuration;

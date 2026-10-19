@@ -191,3 +191,37 @@ Motor Inspector 的 Ground Snap Distance 默认 0.35m，仅控制从接地状态
 - `Run Root Motion Sweep > 30 / 60 / 120 fps` 在干净隔离场景运行。合成 Clip、配置副本与碰撞装置只存在 Play，报告留在 `Client/Library/NoWiresValidation/root-*.json`。
 - 转场仍是姿势快照淡出，快照没有继续推进的根速度；融合会改变实际过渡段距离，需要调融合/倍率。这不是 Motion Warping、惯性化或动态锁脚。
 - 真实角色步幅、骨架兼容和美术表现，以及首条 Max→FBX→Unity 发布，仍需要独立验收。当前本地 Ace 原库未自动启用根运动。
+
+## 8. 已有参考动画的独立 Root Motion 测试
+
+MOVE-014 为现有参考角色另建了本地 Root Motion 场景；原无连线场景继续保留程序位移基线。新场景不需要 Animator Controller，也不需要等待新资产。场景、配置、轨迹、模型和贴图只留在本机，不随代码推送。
+
+### 打开现成副本
+
+1. 在 Project 的 `Assets/LocalAnimationLab` 中找到本轮 Root Motion 专用目录，双击 `RootMotionLab.unity`。不要在公司工程打开或覆盖原参考场景。
+2. 进入 Play。`WASD` 移动，`Shift` 冲刺，松键停步；`F2` 强制切换放松/战斗准备套。这是测试切套，不是假装已制作拔收武器。
+3. 按 `J` 进轻攻击，在允许连段的窗口继续 `J`；`Space` 闪避，`H` 模拟受击，`P` 暂停/恢复。持续按移动方向，可观察动作结束后回到移动。
+4. HUD 的 Motion 应显示 `Motor / extracted Root Motion`；同时看期望速度、Motor 实际速度和 Missing。起步/攻击的速度本来就随原轨迹变化，不应期望每帧等于跑速。
+5. 打开动作工作台，将该目录的 `Motions.asset` 作为编辑对象；战斗动作编辑器使用同目录 `Combat.asset` 中的动作子资产。不要误改原程序位移库。仍按“草稿 → 应用到 Play → 明确保存”的流程调融合、裁剪与倍率。
+
+双套已有 Idle/Start/Run 和可用 Stop 使用真实轨迹；放松套还有原生弧线、冲刺。战斗准备套的冲刺/弧线缺资源时回退 Run，真实 Walk、八向靶向、90°/180°、跳跃等仍以资源表为准。缺靶向等动画而回退 Idle 时，借的是姿势，程序移动仍可运行，不会被零位移待机锁死；画面可能站姿滑移，不算补齐对应动作。新副本关闭脚 IK，动态锁脚与滑步最后处理。
+
+### 为另一个现有本地角色创建副本
+
+退出 Play，打开**干净且已保存、只有一个新播放器角色**的 LocalAnimationLab 场景，选择：
+
+`Tools > MY Project > Animation > Create Root Motion Lab Copy`
+
+文件框中选已有的 LocalAnimationLab 父目录，输入一个**新的名称**。工具自动创建同名新目录，其中放 `RootMotionLab.unity`、`Motions.asset`、`Combat.asset`，随后打开新场景；目录已存在会拒绝，不覆盖。所有已赋 Clip 需具备可提取的原生根数据，否则先报告缺项；没有分配 Clip 的槽仍留空。
+
+工具会独立复制两套移动参数、配方、动作和连段引用，按提取步幅填写循环参考速度；动作时长与窗口/事件时点仅在**本地战斗副本**中等比适配原片段长度，以观察完整动作。它不是正式战斗平衡配置，也不修改原 Clip。原始素材更新后仍要重新提取轨迹。
+
+### 重跑现有动画衔接检查
+
+在新场景非 Play、clean 状态下运行：
+
+`Tools > MY Project > Animation > Run Authored Root Motion Sweep > 30 / 60 / 120 fps`
+
+每档约 88 秒，55 段真实 PlayerLoop 输入，使用场景中已有动画和根轨迹，不替换为合成动画。要求双套基础移动以及现有灰盒动作 ID `L1`–`L4`、`Dodge`、`LightHit` 已配置；这不是任意角色一键质量认证。
+
+检查双套起停/弧线/冲刺、切套、移动进攻击/四段连击/闪避/受击/回移动、暂停与碰撞，另验缺靶向动画时仍能移动并返回真实自由移动。60 档会保存代表性转场多时点画面；报告和截图在 `Client/Library/NoWiresValidation`，不会上传。目标 fps 不等于性能保证，报告保留实际平均与最长帧时间。最终融合审美、完整资源、真人输入手感和动态脚部质量仍分别验收。

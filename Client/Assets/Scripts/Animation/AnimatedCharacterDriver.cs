@@ -330,7 +330,7 @@ namespace Afauxzhub.Project.Animation
                 {
                     bool groundedBefore = motor.IsGrounded;
                     motor.ApplyDisplacement(delta, rotation, Time.deltaTime, verticalWeight);
-                    if (lastRootRotationWeight > 0) heading.Reset(motor.Facing);
+                    if (lastRootRotationWeight > 0) heading.SynchronizeFacing(motor.Facing);
                     // Walking off a ledge inherits collision-resolved momentum, not the last jump's velocity.
                     if (groundedBefore && motor.VerticalSpeed <= 0)
                     { airVelocity = motor.Velocity; airVelocity.y = 0; }

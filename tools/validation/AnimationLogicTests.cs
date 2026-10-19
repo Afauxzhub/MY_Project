@@ -119,6 +119,10 @@ internal static class AnimationLogicTests
         {
             d.Reset(); for (int i = 0; i < fps * 2; i++) Step(d, 5, 0, false, true, 1f / fps);
             Check(Math.Abs(d.Speed - 5) < 0.001 && d.Phase == LocomotionPhase.Move, "speed converges at " + fps + " fps");
+            d.Reset(); Step(d, 0, 0, false, false, 1f / fps);
+            bool falseStop = false;
+            for (int i = 0; i < fps; i++) { Step(d, 0, 0, false, true, 1f / fps); falseStop |= d.Phase == LocomotionPhase.Stop; }
+            Check(!falseStop && d.Phase == LocomotionPhase.Idle, "stationary landing never plays a running stop at " + fps + " fps");
         }
     }
 }

@@ -17,12 +17,18 @@ namespace Afauxzhub.CharacterLocomotion
 
         public void Reset(Vector3 facing)
         {
+            SynchronizeFacing(facing);
+            commandedYawRate = 0f;
+            turnIntentActive = false;
+        }
+
+        /// <summary>Reconcile collision/authored rotation without restarting turn acceleration or hysteresis.</summary>
+        public void SynchronizeFacing(Vector3 facing)
+        {
             facing.y = 0f;
             solvedDirection = facing.sqrMagnitude > 0.0001f
                 ? facing.normalized
                 : Vector3.forward;
-            commandedYawRate = 0f;
-            turnIntentActive = false;
         }
 
         public LocomotionIntent Step(

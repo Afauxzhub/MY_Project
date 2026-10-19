@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Afauxzhub.CharacterLocomotion;
 using Afauxzhub.Project.Animation;
 using UnityEditor;
 using UnityEngine;
@@ -98,9 +99,70 @@ namespace Afauxzhub.Project.Editor.Animation
                 var bakedJson = JsonUtility.ToJson(straight); var roundtrip = JsonUtility.FromJson<RootMotionTrack>(bakedJson);
                 Check(roundtrip.positions.Length == straight.positions.Length && Vector3.Distance(roundtrip.At(0.75f).position, straight.At(0.75f).position) < 0.00001f, "track survives configuration serialization");
                 straight.fingerprint = "outdated"; Check(!RootMotionBaker.Current(straight, model, clip), "stale data detected");
+                player.Dispose(); player = null;
+                CheckFrameAlignment(model, clip, straight);
+                CheckHeadingSynchronization();
                 Debug.Log("Root Motion core: " + Assertions + " assertions passed (native extraction + deterministic playback; not asset quality).");
             }
             finally { player?.Dispose(); Object.DestroyImmediate(model); Object.DestroyImmediate(clip); Object.DestroyImmediate(turn); }
+        }
+
+        private static void CheckFrameAlignment(GameObject model, AnimationClip clip, RootMotionTrack track)
+        {
+            var library = ScriptableObject.CreateInstance<MotionLibrary>();
+            var tuning = ScriptableObject.CreateInstance<LocomotionProfile>();
+            var actor = new GameObject("Frame alignment fixture") { hideFlags = HideFlags.HideAndDontSave };
+            try
+            {
+                library.relaxedMovement = tuning; library.readyMovement = tuning; library.defaultBlend = 0;
+                library.entries.Add(new MotionEntry { slot = MotionSlot.Idle, clip = clip,
+                    rootMotion = new RootMotionSettings { enabled = true, track = track } });
+                var driver = actor.AddComponent<AnimatedCharacterDriver>(); driver.animator = model.GetComponent<Animator>();
+                var adapter = actor.AddComponent<MotionLibraryPlayer>(); adapter.driver = driver; adapter.library = library; driver.motionPlayer = adapter;
+                // Alternating large and tiny intervals exposes one-frame-delayed root debt, including wrap.
+                foreach (float dt in new[] { 0.01f, 0.333f, 0.003f, 0.025f, 0.333f, 0.004f, 0.333f, 0.006f })
+                {
+                    adapter.Tick(null, tuning, dt);
+                    Check(Mathf.Abs(adapter.RootFrame.localDelta.z - 2 * dt) < 0.0001f, "loop root uses THIS frame delta " + dt);
+                    Check(Math.Abs(adapter.Player.TimeFor(library.entries[0].id, true) - adapter.Cycle) < 0.0001f, "pose/root clocks share end-of-frame sample");
+                }
+                // Isolate selector ownership: missing pose fallback is not missing root data.
+                var add = typeof(MotionLibraryPlayer).GetMethod("Add", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                var list = (List<MotionSample>)typeof(MotionLibraryPlayer).GetField("samples", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(adapter);
+                list.Clear(); add.Invoke(adapter, new object[] { MotionSlot.StrafeRight, MotionGait.Run, MotionDirection.Any, 1f, 0.5, true });
+                Check(list.Count == 1 && list[0].rootMotion == null, "missing strafe borrows Idle pose without stealing procedural movement");
+                adapter.WorkingLibrary.entries.Add(new MotionEntry { slot = MotionSlot.Start, direction = MotionDirection.Forward, clip = clip,
+                    rootMotion = new RootMotionSettings { enabled = true, track = track } });
+                list.Clear(); add.Invoke(adapter, new object[] { MotionSlot.Start, MotionGait.Run, MotionDirection.Right, 1f, 0.5, false });
+                Check(list.Count == 1 && list[0].rootMotion == null, "missing directional start never substitutes forward root travel");
+                Check(adapter.WorkingLibrary.entries[0].rootMotion.enabled && library.entries[0].rootMotion.enabled, "fallback does not edit root configuration");
+            }
+            finally { Object.DestroyImmediate(actor); Object.DestroyImmediate(library); Object.DestroyImmediate(tuning); }
+        }
+
+        private static void CheckHeadingSynchronization()
+        {
+            var profile = ScriptableObject.CreateInstance<LocomotionProfile>();
+            try
+            {
+                profile.constrainArcRadius = false; profile.maximumYawRate = 360; profile.yawAcceleration = 1200;
+                profile.yawDeceleration = 1600; profile.headingCatchUpTime = 0.15f;
+                foreach (int fps in new[] { 30, 60, 120 })
+                {
+                    var solver = new HeadingSolver(); solver.Reset(Vector3.forward);
+                    Vector3 desired = Quaternion.Euler(0, 45, 0) * Vector3.forward;
+                    for (int i = 0; i < fps; i++)
+                    {
+                        var intent = solver.Step(solver.SolvedDirection, desired, 5, 1f / fps, profile);
+                        float rate = solver.CommandedYawRate;
+                        solver.SynchronizeFacing(intent.SolvedDirection);
+                        Check(solver.CommandedYawRate == rate, "root reconciliation preserves acceleration at " + fps);
+                    }
+                    Check(Vector3.Angle(solver.SolvedDirection, desired) < 1, "same heading reached at " + fps);
+                    solver.Reset(Vector3.forward); Check(solver.CommandedYawRate == 0, "explicit reset still clears turn state");
+                }
+            }
+            finally { Object.DestroyImmediate(profile); }
         }
     }
 }
